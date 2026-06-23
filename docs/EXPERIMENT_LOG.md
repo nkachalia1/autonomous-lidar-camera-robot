@@ -38,6 +38,11 @@ sudo dmesg --ctime | tail -n 50
 - throttling flags: `0x0`;
 - camera: Sony IMX219 detected at up to 3280x2464;
 - camera capture: completed successfully at 3280x2464;
+- downloaded camera sample: `camera-2.jpg`, 3280x2464, approximately 870 KB;
+- camera sample inspection: geometry and orientation are coherent, fine edges
+  are visible, and there is no obvious cable corruption; image is usable for
+  bring-up but has a green cast, low-light noise/softness, and a large
+  low-texture wall area;
 - lidar USB adapter: Silicon Labs CP210x, USB ID `10c4:ea60`;
 - stable lidar serial path:
   `/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0`;
@@ -56,9 +61,10 @@ the still capture. These warnings are not treated as a failure at this stage.
 ### Result
 
 Pass for independent electronic detection and basic operation. The Raspberry Pi
-power baseline, camera detection/capture, lidar communication, lidar health,
-motor control, and one scan succeeded. Camera image quality and sustained
-simultaneous operation have not yet been validated.
+power baseline, camera detection/capture, usable camera image, lidar
+communication, lidar health, motor control, and one scan succeeded. Sustained
+simultaneous operation has not yet been validated. Better, steadier lighting and
+more visual texture will be needed for reconstruction captures.
 
 ### Next Action
 
