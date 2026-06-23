@@ -121,6 +121,14 @@ problem, or relevant kernel error. Milestone 0 electronic bring-up and load
 testing are complete. The remaining Milestone 0 item is a rigid, protected
 sensor mount suitable for calibration and motion.
 
+### Saved Lidar Visualization
+
+A later single-scan capture contained 1,052 angular samples and 795 valid
+nonzero returns covering the full 0-360 degree interval. Valid ranges were
+0.234-7.584 m, with a median of 0.708 m. The dependency-free plotter at
+`reconstruction/tools/plot_lidar_scan.py` generated the top-down visualization
+documented in `docs/MILESTONE0_RESULTS.md`.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis

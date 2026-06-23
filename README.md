@@ -57,6 +57,9 @@ supported Raspberry Pi configuration.
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for acceptance criteria.
 
+Milestone 0 camera and lidar visual evidence is available in
+[docs/MILESTONE0_RESULTS.md](docs/MILESTONE0_RESULTS.md).
+
 ## Immediate Next Step
 
 Complete [docs/HARDWARE_BRINGUP.md](docs/HARDWARE_BRINGUP.md). Do not start
@@ -82,4 +85,3 @@ mount is rigid.
 - [Raspberry Pi camera software](https://www.raspberrypi.com/documentation/computers/camera_software.html)
 - [ROS 2 Jazzy on Raspberry Pi](https://docs.ros.org/en/jazzy/How-To-Guides/Installing-on-Raspberry-Pi.html)
 - [ROS 2 Jazzy Ubuntu packages](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html)
-
