@@ -2,6 +2,64 @@
 
 Copy the template for every hardware or reconstruction experiment.
 
+## 2026-06-22 Initial Sensor Detection
+
+### Hypothesis
+
+The Raspberry Pi 5 should boot a 64-bit operating system without power
+throttling, detect the Camera Module 2, save a still image, and enumerate the
+RPLIDAR A1M8 USB serial adapter.
+
+### Setup
+
+- hardware: Raspberry Pi 5 8 GB, Camera Module 2 (IMX219), RPLIDAR A1M8;
+- operating system: 64-bit Raspberry Pi OS; exact release not yet recorded;
+- Raspberry Pi user and hostname: `pi5@pi5`;
+- mount revision: sensors connected but not yet rigidly mounted;
+- software revision: initial bring-up before acquisition software;
+- calibration IDs: none.
+
+### Commands
+
+```text
+getconf LONG_BIT
+vcgencmd get_throttled
+rpicam-hello --list-cameras
+mkdir -p ~/sensor-tests
+rpicam-still --nopreview -o ~/sensor-tests/camera.jpg
+lsusb
+ls -l /dev/serial/by-id/ 2>/dev/null || true
+sudo dmesg --ctime | tail -n 50
+```
+
+### Measurements
+
+- operating-system word size: 64-bit;
+- throttling flags: `0x0`;
+- camera: Sony IMX219 detected at up to 3280x2464;
+- camera capture: completed successfully at 3280x2464;
+- lidar USB adapter: Silicon Labs CP210x, USB ID `10c4:ea60`;
+- stable lidar serial path:
+  `/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0`;
+- kernel log: no camera or USB disconnect errors in the supplied tail;
+- temperature, storage, lidar firmware, lidar health, and scan data: not yet
+  measured.
+
+The camera process emitted `Nc30` and `Nc12` pixel-format warnings, but completed
+the still capture. These warnings are not treated as a failure at this stage.
+
+### Result
+
+Partial pass. The Raspberry Pi power baseline, camera detection/capture, and
+lidar USB enumeration succeeded. Image quality has not yet been inspected, and
+communication with the lidar itself has not yet been proven.
+
+### Next Action
+
+Inspect `camera.jpg`, record the remaining system baseline, then build SLAMTEC's
+SDK and run `simple_grabber` against the stable serial-device path at 115200
+baud.
+
 ## Template
 
 ### Experiment ID
@@ -42,4 +100,3 @@ Pass, fail, or inconclusive. Include observed evidence.
 ### Next Action
 
 One small, testable follow-up.
-
