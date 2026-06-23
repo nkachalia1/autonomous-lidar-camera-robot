@@ -307,6 +307,69 @@ the pegboard than the left tape target. That explains the apparent left/middle
 vertical disagreement and makes the provisional overlay fit more credible than
 it initially appeared.
 
+### Pi Camera V2 Intrinsic Calibration
+
+Hypothesis: checkerboard stills from the mounted Raspberry Pi Camera Module 2
+should produce usable focal length, principal point, and distortion parameters
+for the same 1920x1080 capture mode used by the synchronized recorder.
+
+Setup:
+
+- camera: Raspberry Pi Camera Module 2 mounted on the robot-chassis rig;
+- target: physical 8x8 chessboard, 7x7 inner corners;
+- measured square size: 1 3/16 inches, or 30.1625 mm;
+- captured images: `checker-01.jpg` through `checker-75.jpg`;
+- local source folder: `C:\Users\Neel\Downloads\camera-intrinsics`;
+- calibration output:
+  `config/camera_intrinsics_pi_camera_v2_1920x1080.yaml`;
+- diagnostic output:
+  `data/calibration/camera-intrinsics-detection-sheet-75.jpg`.
+
+Command:
+
+```text
+python reconstruction/calibrate_camera_intrinsics.py
+  C:\Users\Neel\Downloads\camera-intrinsics
+  --inner-cols 7
+  --inner-rows 7
+  --square-size-mm 30.1625
+  --output config\camera_intrinsics_pi_camera_v2_1920x1080.yaml
+  --diagnostic-sheet data\calibration\camera-intrinsics-detection-sheet-75.jpg
+```
+
+Measurements:
+
+- images scanned: 75;
+- checkerboards detected: 16;
+- rejected images: 59;
+- RMS reprojection error: 0.3725 px;
+- mean per-view reprojection error: 0.0505 px;
+- max per-view reprojection error: 0.0827 px;
+- camera matrix:
+  `fx=2626.621198`, `fy=2619.644683`, `cx=864.0909643`,
+  `cy=533.5666116`;
+- distortion model: OpenCV plumb-bob;
+- distortion coefficients:
+  `[0.04778594505, 1.696891898, -0.01610473299, -0.01806610254, -7.241881095]`.
+
+Result: pass for a provisional intrinsic calibration. The reprojection error is
+low and the result is saved as versioned configuration. The high rejection count
+and large higher-order distortion terms suggest the wooden board, window
+backlighting, and pose diversity are not ideal, so these intrinsics should be
+validated against the next lidar-camera overlay before being treated as final.
+
+Next action: update the lidar-camera overlay tools to consume the calibrated
+camera matrix instead of approximate field-of-view values, then rerender the
+mounted calibration overlay with `lidar_angle_offset_deg=115`, `roll=-2`, and
+`pitch=-1`.
+
+Follow-up: `project_lidar_overlay.py` and `render_lidar_angle_sweep.py` now
+accept `--camera-intrinsics` YAML input and apply OpenCV plumb-bob distortion
+when projecting lidar returns. The calibrated single overlay and a calibrated
+`105,110,115,120,125` degree angle sweep were generated for session
+`20260623T215235Z` under `data/calibration/`. These SVGs remain local generated
+artifacts and are not tracked by Git.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis

@@ -11,7 +11,9 @@ from pathlib import Path
 from typing import Any
 
 from project_lidar_overlay import (
+    DistortionCoefficients,
     camera_intrinsics_from_fov,
+    camera_intrinsics_from_yaml,
     choose_frame_timestamp,
     choose_scan,
     image_data_uri,
@@ -51,6 +53,7 @@ def project_scan(
     fy: float,
     cx: float,
     cy: float,
+    distortion: DistortionCoefficients | None,
     width: int,
     height: int,
     min_distance_m: float,
@@ -88,7 +91,7 @@ def project_scan(
             pitch_deg,
             roll_deg,
         )
-        projected = project_camera_point(point_camera, fx, fy, cx, cy)
+        projected = project_camera_point(point_camera, fx, fy, cx, cy, distortion)
         if projected is None:
             behind_count += 1
             continue
@@ -204,6 +207,11 @@ def main() -> int:
     parser.add_argument("--max-distance-m", type=float, default=8.0)
     parser.add_argument("--fov-x-deg", type=float, default=62.2)
     parser.add_argument("--fov-y-deg", type=float, default=37.2)
+    parser.add_argument(
+        "--camera-intrinsics",
+        type=Path,
+        help="YAML camera intrinsics file; overrides FOV-derived intrinsics",
+    )
     parser.add_argument("--columns", type=int, default=3)
     parser.add_argument("--thumb-width", type=int, default=480)
     args = parser.parse_args()
@@ -219,12 +227,18 @@ def main() -> int:
     scans = load_lidar_scans(session / manifest["lidar"]["scans"])
     width = int(manifest["camera"]["width"])
     height = int(manifest["camera"]["height"])
-    fx, fy, cx, cy = camera_intrinsics_from_fov(
-        width,
-        height,
-        args.fov_x_deg,
-        args.fov_y_deg,
-    )
+    distortion: DistortionCoefficients | None = None
+    if args.camera_intrinsics:
+        fx, fy, cx, cy, distortion = camera_intrinsics_from_yaml(
+            args.camera_intrinsics.resolve()
+        )
+    else:
+        fx, fy, cx, cy = camera_intrinsics_from_fov(
+            width,
+            height,
+            args.fov_x_deg,
+            args.fov_y_deg,
+        )
 
     frame_index, frame_timestamp_ns = choose_frame_timestamp(
         camera_metadata,
@@ -248,6 +262,7 @@ def main() -> int:
             fy,
             cx,
             cy,
+            distortion,
             width,
             height,
             args.min_distance_m,

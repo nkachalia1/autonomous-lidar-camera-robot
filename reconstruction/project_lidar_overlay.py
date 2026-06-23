@@ -18,6 +18,9 @@ from pathlib import Path
 from typing import Any
 
 
+DistortionCoefficients = tuple[float, float, float, float, float]
+
+
 def load_json(path: Path) -> Any:
     with path.open(encoding="utf-8") as stream:
         return json.load(stream)
@@ -47,6 +50,56 @@ def camera_intrinsics_from_fov(
     fx = width / (2.0 * math.tan(math.radians(fov_x_deg) / 2.0))
     fy = height / (2.0 * math.tan(math.radians(fov_y_deg) / 2.0))
     return fx, fy, width / 2.0, height / 2.0
+
+
+def yaml_section_data(path: Path, section: str) -> list[float]:
+    """Extract a `data: [newline list]` block from our generated YAML files."""
+
+    lines = path.read_text(encoding="utf-8").splitlines()
+    in_section = False
+    in_data = False
+    values: list[float] = []
+    for line in lines:
+        if not line.startswith(" ") and line.endswith(":"):
+            in_section = line[:-1] == section
+            in_data = False
+            continue
+        if not in_section:
+            continue
+        stripped = line.strip()
+        if stripped == "data:":
+            in_data = True
+            continue
+        if in_data:
+            if stripped.startswith("- "):
+                values.append(float(stripped[2:]))
+                continue
+            if stripped and not stripped.startswith("#"):
+                break
+    if not values:
+        raise ValueError(f"could not find {section}.data in {path}")
+    return values
+
+
+def camera_intrinsics_from_yaml(
+    path: Path,
+) -> tuple[float, float, float, float, DistortionCoefficients | None]:
+    matrix = yaml_section_data(path, "camera_matrix")
+    if len(matrix) != 9:
+        raise ValueError(f"camera_matrix.data in {path} must contain 9 values")
+
+    distortion_values = yaml_section_data(path, "distortion_coefficients")
+    distortion: DistortionCoefficients | None = None
+    if len(distortion_values) >= 5:
+        distortion = (
+            distortion_values[0],
+            distortion_values[1],
+            distortion_values[2],
+            distortion_values[3],
+            distortion_values[4],
+        )
+
+    return matrix[0], matrix[4], matrix[2], matrix[5], distortion
 
 
 def lidar_point_to_lidar_xyz(
@@ -119,11 +172,28 @@ def project_camera_point(
     fy: float,
     cx: float,
     cy: float,
+    distortion: DistortionCoefficients | None = None,
 ) -> tuple[float, float] | None:
     x, y, z = point_camera
     if z <= 0.01:
         return None
-    return fx * x / z + cx, fy * y / z + cy
+    x_n = x / z
+    y_n = y / z
+    if distortion is not None:
+        k1, k2, p1, p2, k3 = distortion
+        r2 = x_n * x_n + y_n * y_n
+        radial = 1.0 + k1 * r2 + k2 * r2 * r2 + k3 * r2 * r2 * r2
+        x_tangential = 2.0 * p1 * x_n * y_n + p2 * (r2 + 2.0 * x_n * x_n)
+        y_tangential = p1 * (r2 + 2.0 * y_n * y_n) + 2.0 * p2 * x_n * y_n
+        x_n = x_n * radial + x_tangential
+        y_n = y_n * radial + y_tangential
+    return fx * x_n + cx, fy * y_n + cy
+
+
+def distortion_label(distortion: DistortionCoefficients | None) -> str:
+    if distortion is None:
+        return "none"
+    return ", ".join(f"{value:.3g}" for value in distortion)
 
 
 def point_color(distance_m: float) -> str:
@@ -291,6 +361,11 @@ def main() -> int:
     parser.add_argument("--max-distance-m", type=float, default=8.0)
     parser.add_argument("--fov-x-deg", type=float, default=62.2)
     parser.add_argument("--fov-y-deg", type=float, default=37.2)
+    parser.add_argument(
+        "--camera-intrinsics",
+        type=Path,
+        help="YAML camera intrinsics file; overrides FOV-derived intrinsics",
+    )
     parser.add_argument("--fx", type=float, default=None)
     parser.add_argument("--fy", type=float, default=None)
     parser.add_argument("--cx", type=float, default=None)
@@ -305,15 +380,23 @@ def main() -> int:
     width = int(manifest["camera"]["width"])
     height = int(manifest["camera"]["height"])
 
-    if args.fx is None or args.fy is None or args.cx is None or args.cy is None:
+    distortion: DistortionCoefficients | None = None
+    if args.camera_intrinsics:
+        fx, fy, cx, cy, distortion = camera_intrinsics_from_yaml(
+            args.camera_intrinsics.resolve()
+        )
+        intrinsics_source = str(args.camera_intrinsics)
+    elif args.fx is None or args.fy is None or args.cx is None or args.cy is None:
         fx, fy, cx, cy = camera_intrinsics_from_fov(
             width,
             height,
             args.fov_x_deg,
             args.fov_y_deg,
         )
+        intrinsics_source = "fov"
     else:
         fx, fy, cx, cy = args.fx, args.fy, args.cx, args.cy
+        intrinsics_source = "manual"
 
     frame_index, frame_timestamp_ns = choose_frame_timestamp(
         camera_metadata,
@@ -350,7 +433,7 @@ def main() -> int:
             args.pitch_deg,
             args.roll_deg,
         )
-        projected = project_camera_point(point_camera, fx, fy, cx, cy)
+        projected = project_camera_point(point_camera, fx, fy, cx, cy, distortion)
         if projected is None:
             behind_count += 1
             continue
@@ -379,8 +462,9 @@ def main() -> int:
         ),
         (
             f"intrinsics: fx={fx:.1f}, fy={fy:.1f}, cx={cx:.1f}, cy={cy:.1f}; "
-            f"distance-filtered returns={filtered_count}"
+            f"source={intrinsics_source}; distance-filtered returns={filtered_count}"
         ),
+        f"distortion coefficients: {distortion_label(distortion)}",
     ]
     render_overlay_svg(
         args.output,

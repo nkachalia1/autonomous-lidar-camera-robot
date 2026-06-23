@@ -1,0 +1,117 @@
+schema_version: 1
+camera: "Raspberry Pi Camera Module 2"
+calibration_image_size:
+  width: 1920
+  height: 1080
+checkerboard:
+  inner_corners:
+    cols: 7
+    rows: 7
+  square_size_mm: 30.1625
+  square_size_m: 0.0301625
+rms_reprojection_error_px: 0.3725041912
+mean_per_view_error_px: 0.05047263047
+max_per_view_error_px: 0.0827323131
+camera_matrix:
+  rows: 3
+  cols: 3
+  data:
+    - 2626.621198
+    - 0
+    - 864.0909643
+    - 0
+    - 2619.644683
+    - 533.5666116
+    - 0
+    - 0
+    - 1
+distortion_coefficients:
+  model: "opencv_plumb_bob"
+  data:
+    - 0.04778594505
+    - 1.696891898
+    - -0.01610473299
+    - -0.01806610254
+    - -7.241881095
+used_image_count: 16
+rejected_image_count: 59
+used_images:
+  - "checker-10.jpg"
+  - "checker-14.jpg"
+  - "checker-15.jpg"
+  - "checker-44.jpg"
+  - "checker-45.jpg"
+  - "checker-50.jpg"
+  - "checker-53.jpg"
+  - "checker-55.jpg"
+  - "checker-57.jpg"
+  - "checker-58.jpg"
+  - "checker-60.jpg"
+  - "checker-61.jpg"
+  - "checker-63.jpg"
+  - "checker-65.jpg"
+  - "checker-70.jpg"
+  - "checker-72.jpg"
+rejected_images:
+  - "checker-01.jpg: checkerboard not detected"
+  - "checker-02.jpg: checkerboard not detected"
+  - "checker-03.jpg: checkerboard not detected"
+  - "checker-04.jpg: checkerboard not detected"
+  - "checker-05.jpg: checkerboard not detected"
+  - "checker-06.jpg: checkerboard not detected"
+  - "checker-07.jpg: checkerboard not detected"
+  - "checker-08.jpg: checkerboard not detected"
+  - "checker-09.jpg: checkerboard not detected"
+  - "checker-11.jpg: checkerboard not detected"
+  - "checker-12.jpg: checkerboard not detected"
+  - "checker-13.jpg: checkerboard not detected"
+  - "checker-16.jpg: checkerboard not detected"
+  - "checker-17.jpg: checkerboard not detected"
+  - "checker-18.jpg: checkerboard not detected"
+  - "checker-19.jpg: checkerboard not detected"
+  - "checker-20.jpg: checkerboard not detected"
+  - "checker-21.jpg: checkerboard not detected"
+  - "checker-22.jpg: checkerboard not detected"
+  - "checker-23.jpg: checkerboard not detected"
+  - "checker-24.jpg: checkerboard not detected"
+  - "checker-25.jpg: checkerboard not detected"
+  - "checker-26.jpg: checkerboard not detected"
+  - "checker-27.jpg: checkerboard not detected"
+  - "checker-28.jpg: checkerboard not detected"
+  - "checker-29.jpg: checkerboard not detected"
+  - "checker-30.jpg: checkerboard not detected"
+  - "checker-31.jpg: checkerboard not detected"
+  - "checker-32.jpg: checkerboard not detected"
+  - "checker-33.jpg: checkerboard not detected"
+  - "checker-34.jpg: checkerboard not detected"
+  - "checker-35.jpg: checkerboard not detected"
+  - "checker-36.jpg: checkerboard not detected"
+  - "checker-37.jpg: checkerboard not detected"
+  - "checker-38.jpg: checkerboard not detected"
+  - "checker-39.jpg: checkerboard not detected"
+  - "checker-40.jpg: checkerboard not detected"
+  - "checker-41.jpg: checkerboard not detected"
+  - "checker-42.jpg: checkerboard not detected"
+  - "checker-43.jpg: checkerboard not detected"
+  - "checker-46.jpg: checkerboard not detected"
+  - "checker-47.jpg: checkerboard not detected"
+  - "checker-48.jpg: checkerboard not detected"
+  - "checker-49.jpg: checkerboard not detected"
+  - "checker-51.jpg: checkerboard not detected"
+  - "checker-52.jpg: checkerboard not detected"
+  - "checker-54.jpg: checkerboard not detected"
+  - "checker-56.jpg: checkerboard not detected"
+  - "checker-59.jpg: checkerboard not detected"
+  - "checker-62.jpg: checkerboard not detected"
+  - "checker-64.jpg: checkerboard not detected"
+  - "checker-66.jpg: checkerboard not detected"
+  - "checker-67.jpg: checkerboard not detected"
+  - "checker-68.jpg: checkerboard not detected"
+  - "checker-69.jpg: checkerboard not detected"
+  - "checker-71.jpg: checkerboard not detected"
+  - "checker-73.jpg: checkerboard not detected"
+  - "checker-74.jpg: checkerboard not detected"
+  - "checker-75.jpg: checkerboard not detected"
+notes:
+  - "Calibrated from Pi still images captured at 1920x1080."
+  - "Use these intrinsics only for the same camera mode/resolution unless recalibrated."
