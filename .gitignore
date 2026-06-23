@@ -14,6 +14,7 @@ data/*
 *.jpg
 *.jpeg
 *.png
+!docs/assets/*.png
 *.npz
 *.npy
 *.zst
@@ -32,4 +33,3 @@ venv/
 .vscode/
 .DS_Store
 Thumbs.db
-
