@@ -1,0 +1,32 @@
+# Preliminary physical measurements for the room-reconstruction rig.
+#
+# Coordinate convention:
+#   lidar frame: +x points in the lidar's 0-degree direction
+#                +y points left when viewed from above
+#                +z points upward
+#
+# Translation components describe the camera optical center relative to the
+# lidar measurement center. Leave unknown values as null until measured.
+
+rig_revision: "rig-001"
+measurement_date: "2026-06-22"
+status: "preliminary"
+
+lidar_to_camera:
+  center_to_center_distance_m: 0.127
+  center_to_center_distance_source: "approximately 5 inches, user measurement"
+
+  # Required before this becomes a usable translation vector.
+  camera_forward_m: null
+  camera_left_m: null
+  camera_up_m: null
+
+  # Required before this becomes a usable rigid transform.
+  camera_roll_deg: null
+  camera_pitch_deg: null
+  camera_yaw_deg: null
+
+notes:
+  - "Distance is approximate and must be remeasured after the final mount is tightened."
+  - "Do not use this file as a calibrated extrinsic transform yet."
+

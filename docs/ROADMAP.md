@@ -5,7 +5,9 @@
 Goal: prove both sensors work independently on the Raspberry Pi.
 
 Status: electronic bring-up and simultaneous ten-minute load test passed on
-2026-06-22. A rigid, electrically protected mount remains required.
+2026-06-22. A preliminary 0.127 m camera-to-lidar center distance has been
+recorded. A rigid, electrically protected mount and resolved three-axis
+measurements remain required.
 
 Done when:
 

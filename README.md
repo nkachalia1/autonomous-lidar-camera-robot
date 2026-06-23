@@ -62,9 +62,8 @@ Milestone 0 camera and lidar visual evidence is available in
 
 ## Immediate Next Step
 
-Complete [docs/HARDWARE_BRINGUP.md](docs/HARDWARE_BRINGUP.md). Do not start
-fusion work until both sensors independently produce valid data and the physical
-mount is rigid.
+Electronic bring-up is complete. Assemble and measure the rigid rig using
+[docs/RIG_ASSEMBLY.md](docs/RIG_ASSEMBLY.md) before synchronized capture work.
 
 ## Known Limitations
 

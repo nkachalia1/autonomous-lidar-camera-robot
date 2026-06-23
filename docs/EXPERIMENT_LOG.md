@@ -129,6 +129,14 @@ nonzero returns covering the full 0-360 degree interval. Valid ranges were
 `reconstruction/tools/plot_lidar_scan.py` generated the top-down visualization
 documented in `docs/MILESTONE0_RESULTS.md`.
 
+### Preliminary Rig Measurement
+
+The user measured approximately 5 inches (127 mm or 0.127 m) from the lidar
+spinner center to the camera optical center. This is recorded as a scalar
+center-to-center distance only. Its three translation components and camera
+orientation remain unknown until the final rigid mount is assembled and
+measured.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
