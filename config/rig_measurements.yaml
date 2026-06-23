@@ -8,19 +8,24 @@
 # Translation components describe the camera optical center relative to the
 # lidar measurement center. Leave unknown values as null until measured.
 
-rig_revision: "rig-001"
-measurement_date: "2026-06-22"
-status: "preliminary"
+rig_revision: "rig-002-robot-chassis"
+measurement_date: "2026-06-23"
+status: "rough physical measurements from annotated photos; not calibrated"
 
 lidar_to_camera:
-  center_to_center_distance_m: 0.127
-  center_to_center_distance_source: "approximately 5 inches, annotated tabletop photo"
-  current_layout_description: "diagonal separation in the photographed tabletop arrangement"
+  center_to_center_distance_m: 0.1205
+  center_to_center_distance_source: "computed from annotated robot-chassis photos"
+  current_layout_description: "camera elevated on taped mast above shared robot chassis"
+
+  raw_measurements_inches:
+    camera_forward_back_magnitude: 2.9
+    camera_lateral_magnitude: 0.2
+    camera_vertical_magnitude: 3.75
 
   # Required before this becomes a usable translation vector.
-  camera_forward_m: null
-  camera_left_m: null
-  camera_up_m: null
+  camera_forward_m: -0.0737
+  camera_left_m: 0.0051
+  camera_up_m: 0.0953
 
   # Required before this becomes a usable rigid transform.
   camera_roll_deg: null
@@ -28,7 +33,8 @@ lidar_to_camera:
   camera_yaw_deg: null
 
 notes:
-  - "Distance is approximate and must be remeasured after the final mount is tightened."
-  - "The photographed 4.5-inch lidar-to-Pi distance is not an extrinsic calibration measurement."
-  - "The tabletop arrangement is not rigid and must not be used for reconstruction capture."
-  - "Do not use this file as a calibrated extrinsic transform yet."
+  - "The 2.9, 0.2, and 3.75 inch measurements convert to 0.0737, 0.0051, and 0.0953 meters."
+  - "The center-to-center distance is sqrt(2.9^2 + 0.2^2 + 3.75^2) = 4.745 inches, or 0.1205 meters."
+  - "camera_forward_m is negative under the current assumption that the camera is behind the lidar relative to the camera viewing direction."
+  - "camera_left_m sign is preliminary because the annotated photo gives magnitude more confidently than side."
+  - "Do not use this file as a calibrated extrinsic transform yet; tune with projection overlays."
