@@ -265,6 +265,28 @@ wall, cardboard, and box edges.
 Result: pass for synchronized mounted calibration capture. Calibration remains
 inconclusive until a single opaque target provides an unambiguous best angle.
 
+### Camera Re-leveling and Fine Angle Sweep
+
+After the camera was physically adjusted to reduce tilt, session
+`20260623T215235Z` was captured in `mounted_calibration` mode.
+
+- camera: 443 frames over 29.461 seconds;
+- camera gap events above 1.5x nominal: 0;
+- lidar: 219 scans over 28.756 seconds;
+- lidar gap events above 1.5x nominal: 0;
+- lidar valid returns per scan min/median/max: 806/818/829;
+- shared monotonic-clock overlap: 28.716 seconds;
+- geometry remained marked invalid for reconstruction pending calibration.
+
+The coarse sweep favored approximately -120 and +120 degrees. A fine sweep
+around +120 degrees favored +115 degrees. This is recorded as the provisional
+software `lidar_angle_offset_deg`. It does not require physically rotating the
+lidar.
+
+Next action: keep `lidar_angle_offset_deg=115` fixed and sweep camera roll to
+align the projected scan line with the left, middle, and right opaque tape
+targets.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
