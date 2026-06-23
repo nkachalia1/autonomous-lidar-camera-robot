@@ -16,6 +16,28 @@ up/down components after the final mount is tightened.
 The preliminary value is recorded in
 [`config/rig_measurements.yaml`](../config/rig_measurements.yaml).
 
+## Review of the Current Tabletop Arrangement
+
+The annotated photo shows:
+
+- approximately 5 inches from the lidar center to the camera;
+- approximately 4.5 inches from the lidar center to a point on the Raspberry Pi;
+- a diagonal camera-to-lidar placement in the photographed view.
+
+Only the lidar-to-camera measurement contributes to sensor extrinsics. The
+lidar-to-Pi distance is useful for packaging but does not affect geometric
+fusion.
+
+The photographed arrangement is not yet a rig:
+
+- the lidar, Pi, and camera are not fixed to one plate;
+- the camera appears to be supported by its PCB edge and ribbon cable;
+- the Pi has exposed conductive surfaces;
+- the cables have no strain relief;
+- moving any component would change the geometry.
+
+Do not carry or calibrate this arrangement.
+
 ## Recommended Arrangement
 
 - Place the lidar above the camera.
@@ -30,6 +52,25 @@ The preliminary value is recorded in
 A vertical separation of approximately 127 mm is acceptable if that is how the
 5-inch measurement is arranged. It gives the camera a clear view while keeping
 the lidar scan plane above most nearby rig components.
+
+## Simple Prototype Layout
+
+Use one nonconductive base plate approximately 200 x 150 mm (8 x 6 inches) or
+larger:
+
+1. mount the lidar near the rear/center of the plate;
+2. mount the camera at the front edge in a rigid camera bracket;
+3. mount the Pi beside or behind the camera on nylon standoffs;
+4. keep the camera lens and all mounting hardware below the lidar scan plane;
+5. secure the USB adapter board and both cables to the plate;
+6. add a handle underneath or behind the sensors.
+
+Suitable prototype plate materials include plywood, acrylic, polycarbonate, or
+a rigid 3D-printed plate. Cardboard is acceptable only for planning hole
+locations, not for calibration or room capture.
+
+Use screws and standoffs where possible. Reusable hook-and-loop straps may hold
+the power bank or cable slack, but must not locate the camera or lidar.
 
 ## Mechanical Pass Criteria
 
@@ -89,4 +130,3 @@ whether the rig will be handheld or placed on a cart.
 
 These measurements establish an initial transform. Formal calibration will
 refine it later.
-

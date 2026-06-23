@@ -137,6 +137,12 @@ center-to-center distance only. Its three translation components and camera
 orientation remain unknown until the final rigid mount is assembled and
 measured.
 
+An annotated follow-up photo showed the 5-inch separation as diagonal in the
+current tabletop view and a separate 4.5-inch lidar-to-Pi distance. The latter
+is packaging information, not an extrinsic calibration measurement. The photo
+also confirmed that the camera, Pi, lidar, USB adapter, and cables are not yet
+mechanically constrained as one rig.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis

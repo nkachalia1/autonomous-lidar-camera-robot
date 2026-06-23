@@ -14,7 +14,8 @@ status: "preliminary"
 
 lidar_to_camera:
   center_to_center_distance_m: 0.127
-  center_to_center_distance_source: "approximately 5 inches, user measurement"
+  center_to_center_distance_source: "approximately 5 inches, annotated tabletop photo"
+  current_layout_description: "diagonal separation in the photographed tabletop arrangement"
 
   # Required before this becomes a usable translation vector.
   camera_forward_m: null
@@ -28,5 +29,6 @@ lidar_to_camera:
 
 notes:
   - "Distance is approximate and must be remeasured after the final mount is tightened."
+  - "The photographed 4.5-inch lidar-to-Pi distance is not an extrinsic calibration measurement."
+  - "The tabletop arrangement is not rigid and must not be used for reconstruction capture."
   - "Do not use this file as a calibrated extrinsic transform yet."
-
