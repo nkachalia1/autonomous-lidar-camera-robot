@@ -182,6 +182,20 @@ The downloaded session subsequently passed desktop validation:
 
 The smoke test fully passed and the stationary three-minute capture is cleared.
 
+### Three-minute Stationary Timestamp Capture
+
+Session `20260623T040231Z` completed on the Raspberry Pi.
+
+- requested duration: 180 seconds;
+- camera exit status: 0;
+- lidar exit status: 0;
+- manifest finalization succeeded;
+- the sensors remained in stationary, unmounted-test mode;
+- the session remains invalid for geometric reconstruction.
+
+Process-level capture passed. Desktop validation of timestamp duration, cadence,
+and shared-clock overlap remains required.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
