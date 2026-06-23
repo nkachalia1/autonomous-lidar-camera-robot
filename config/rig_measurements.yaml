@@ -28,12 +28,13 @@ lidar_to_camera:
   camera_up_m: 0.0953
 
   # Required before this becomes a usable rigid transform.
-  camera_roll_deg: null
+  camera_roll_deg: -3
   camera_pitch_deg: null
   camera_yaw_deg: null
 
   provisional_lidar_angle_offset_deg: 115
   provisional_lidar_angle_offset_source: "20260623T215235Z fine angle sweep; user selected +115 degrees"
+  provisional_camera_roll_source: "roll sweep with lidar angle fixed at +115 degrees; user reported -2 and -4 degrees were best, so -3 degrees is recorded as midpoint"
 
 notes:
   - "The 2.9, 0.2, and 3.75 inch measurements convert to 0.0737, 0.0051, and 0.0953 meters."
@@ -41,5 +42,5 @@ notes:
   - "camera_forward_m is negative under the current assumption that the camera is behind the lidar relative to the camera viewing direction."
   - "camera_left_m sign is preliminary because the annotated photo gives magnitude more confidently than side."
   - "The +115 degree lidar angle offset is a software calibration parameter, not a reason to rotate the lidar on the mount."
-  - "Roll, pitch, intrinsics, and the translation signs still need refinement before marking geometry valid."
+  - "Camera roll is provisionally set to -3 degrees; pitch, intrinsics, and the translation signs still need refinement before marking geometry valid."
   - "Do not use this file as a calibrated extrinsic transform yet; tune with projection overlays."

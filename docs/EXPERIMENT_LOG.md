@@ -287,6 +287,13 @@ Next action: keep `lidar_angle_offset_deg=115` fixed and sweep camera roll to
 align the projected scan line with the left, middle, and right opaque tape
 targets.
 
+Roll sweep follow-up: with `lidar_angle_offset_deg=115`, the user reported
+`roll=-2` and `roll=-4` as the best overlays. In both, the projected line was
+slightly below the left pegboard tape and crossed through the middle pegboard
+tape. Record `roll=-3` as a provisional midpoint. The remaining left-side
+offset may be caused by non-level tape placement, camera pitch/height error,
+approximate intrinsics, or target-plane perspective rather than roll alone.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
