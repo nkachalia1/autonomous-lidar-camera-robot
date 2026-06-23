@@ -4,6 +4,9 @@
 
 Goal: prove both sensors work independently on the Raspberry Pi.
 
+Status: electronic bring-up and simultaneous ten-minute load test passed on
+2026-06-22. A rigid, electrically protected mount remains required.
+
 Done when:
 
 - Raspberry Pi Camera Module 2 is detected;
@@ -105,4 +108,3 @@ camera.
 
 Acceptance criteria will be defined after measuring hallway length, lighting,
 surface texture, and expected output quality.
-

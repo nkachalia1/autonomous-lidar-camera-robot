@@ -95,6 +95,32 @@ seconds at 1920x1080, 15 fps, and a requested 4 Mbit/s bitrate.
 
 The camera command is ready for the simultaneous ten-minute repetition.
 
+### Successful Simultaneous Repetition
+
+The corrected camera and lidar commands ran concurrently for ten minutes.
+
+- camera exit status: 0;
+- camera output: 290 MB H.264 file at 1920x1080 and 15 fps;
+- camera encoder-reported average rate: approximately 4057 kbit/s;
+- lidar exit status: 124, expected from the ten-minute `timeout`;
+- lidar stderr: 0 bytes;
+- final temperature: 47.7 degrees Celsius;
+- final throttling flags: `0x0`;
+- root filesystem: 115 GB total, 5.5 GB used, 105 GB available;
+- the final filtered kernel command produced no matching disconnect, voltage,
+  MMC, EXT4, or I/O error lines after successful sudo authentication.
+
+The stray `^[[A^[[B` characters in the terminal transcript are arrow-key escape
+sequences and did not affect either process.
+
+### Result
+
+Pass. Both sensors operated concurrently for ten minutes without a reported
+camera failure, lidar acquisition error, undervoltage, thermal throttle, storage
+problem, or relevant kernel error. Milestone 0 electronic bring-up and load
+testing are complete. The remaining Milestone 0 item is a rigid, protected
+sensor mount suitable for calibration and motion.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
