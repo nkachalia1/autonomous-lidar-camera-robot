@@ -48,6 +48,41 @@ that stop state, so this adapter returns to spinning while it remains powered.
 This is treated as observed adapter behavior, not evidence of a lingering
 process.
 
+## 2026-06-22 First Ten-minute Load Attempt
+
+### Hypothesis
+
+The camera and lidar should operate together for ten minutes without
+undervoltage, thermal throttling, USB disconnects, or sensor errors.
+
+### Result
+
+Partial pass. The lidar ran for the requested ten minutes and was terminated by
+`timeout` with the expected status 124. Its stderr log was empty. The camera
+initialized and selected its 1920x1080 mode, but exited immediately with status
+255 because this `rpicam-vid` build could not infer an output format for
+`/dev/null`.
+
+Post-test measurements:
+
+- temperature: 49.4 degrees Celsius;
+- throttling flags: `0x0`;
+- storage: 105 GB available;
+- lidar stderr: 0 bytes;
+- no USB disconnect was present in the supplied kernel excerpt.
+
+The kernel logged CP210x control-request timeouts (`request 0x12`, status
+`-110`). At least one occurred around lidar shutdown. Since scan acquisition
+continued for ten minutes and there was no USB disconnect, these are recorded
+as motor/DTR control warnings pending further observation, not as proof of scan
+data loss.
+
+### Next Action
+
+Send the H.264 byte stream to standard output and redirect that stream to
+`/dev/null`, leaving diagnostic output in a log. Validate the corrected camera
+command briefly, then repeat the simultaneous ten-minute test.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
