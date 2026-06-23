@@ -52,8 +52,10 @@ sudo dmesg --ctime | tail -n 50
 - lidar hardware revision: 7;
 - lidar health: OK, error code 0;
 - lidar scan: one complete scan returned and rendered as a non-empty histogram;
-- temperature, storage, detailed range statistics, and scan frequency: not yet
-  measured.
+- idle/bring-up temperature: 46.6 degrees Celsius;
+- throttling after independent sensor tests: `0x0`;
+- root filesystem: 115 GB total, 5.2 GB used, 105 GB available (5% used);
+- detailed lidar range statistics and scan frequency: not yet measured.
 
 The camera process emitted `Nc30` and `Nc12` pixel-format warnings, but completed
 the still capture. These warnings are not treated as a failure at this stage.
