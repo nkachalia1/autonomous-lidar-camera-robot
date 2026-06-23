@@ -166,6 +166,22 @@ Process-level capture passed. File counts, monotonic timestamp ordering, sensor
 overlap, and sample gaps remain to be checked with
 `reconstruction/validate_session.py` before the three-minute capture.
 
+The downloaded session subsequently passed desktop validation:
+
+- camera: 443 frames over 29.461 seconds;
+- camera frame gap p50/p95/max:
+  66.655/66.656/66.660 ms, approximately 15 fps;
+- lidar: 212 complete scans over 28.584 seconds;
+- lidar scan gap p50/p95/max:
+  135.478/135.853/136.099 ms, approximately 7.38 scans/s;
+- lidar valid returns per scan min/median/max: 798/816/841;
+- shared monotonic-clock overlap: 28.584 seconds;
+- all timestamps were internally consistent;
+- geometry remained explicitly invalid for reconstruction because the sensors
+  were not rigidly mounted.
+
+The smoke test fully passed and the stationary three-minute capture is cleared.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
