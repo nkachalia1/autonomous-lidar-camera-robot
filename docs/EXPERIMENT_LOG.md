@@ -42,7 +42,12 @@ sudo dmesg --ctime | tail -n 50
 - stable lidar serial path:
   `/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0`;
 - kernel log: no camera or USB disconnect errors in the supplied tail;
-- temperature, storage, lidar firmware, lidar health, and scan data: not yet
+- lidar serial number: `439AECF0C3E09ED2A0EA98F3D0424110`;
+- lidar firmware: 1.29;
+- lidar hardware revision: 7;
+- lidar health: OK, error code 0;
+- lidar scan: one complete scan returned and rendered as a non-empty histogram;
+- temperature, storage, detailed range statistics, and scan frequency: not yet
   measured.
 
 The camera process emitted `Nc30` and `Nc12` pixel-format warnings, but completed
@@ -50,15 +55,16 @@ the still capture. These warnings are not treated as a failure at this stage.
 
 ### Result
 
-Partial pass. The Raspberry Pi power baseline, camera detection/capture, and
-lidar USB enumeration succeeded. Image quality has not yet been inspected, and
-communication with the lidar itself has not yet been proven.
+Pass for independent electronic detection and basic operation. The Raspberry Pi
+power baseline, camera detection/capture, lidar communication, lidar health,
+motor control, and one scan succeeded. Camera image quality and sustained
+simultaneous operation have not yet been validated.
 
 ### Next Action
 
-Inspect `camera.jpg`, record the remaining system baseline, then build SLAMTEC's
-SDK and run `simple_grabber` against the stable serial-device path at 115200
-baud.
+Inspect `camera.jpg`, record the remaining system baseline, and run both sensors
+together for ten minutes while checking temperature, throttling, USB stability,
+and storage.
 
 ## Template
 
