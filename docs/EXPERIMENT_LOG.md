@@ -294,6 +294,19 @@ tape. Record `roll=-3` as a provisional midpoint. The remaining left-side
 offset may be caused by non-level tape placement, camera pitch/height error,
 approximate intrinsics, or target-plane perspective rather than roll alone.
 
+Pitch follow-up: with `lidar_angle_offset_deg=115` and `roll=-2`, pitch sweeps
+showed that no single value perfectly matched both the left and middle tape
+targets. `pitch=0` was very slightly under the left tape and above the middle
+tape. `pitch=-2` and nearby negative values improved the middle tape but left
+the left tape low. Stop hand tuning and record a practical provisional
+calibration of `roll=-2` and `pitch=-1`. The next higher-value step is camera
+intrinsic calibration rather than further manual overlay fitting.
+
+Follow-up observation: the middle tape target was physically one peg higher on
+the pegboard than the left tape target. That explains the apparent left/middle
+vertical disagreement and makes the provisional overlay fit more credible than
+it initially appeared.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
