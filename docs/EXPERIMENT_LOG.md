@@ -83,6 +83,18 @@ Send the H.264 byte stream to standard output and redirect that stream to
 `/dev/null`, leaving diagnostic output in a log. Validate the corrected camera
 command briefly, then repeat the simultaneous ten-minute test.
 
+### Camera Command Correction
+
+The corrected camera command wrote an explicit `.h264` output file for 15
+seconds at 1920x1080, 15 fps, and a requested 4 Mbit/s bitrate.
+
+- camera exit status: 0;
+- output size: 7.5 MB;
+- encoder-reported average rate: approximately 4309 kbit/s;
+- no camera error was present in the supplied log tail.
+
+The camera command is ready for the simultaneous ten-minute repetition.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
