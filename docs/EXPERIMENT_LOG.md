@@ -217,6 +217,28 @@ The downloaded session passed desktop validation:
 Result: pass with two explicitly recorded cadence anomalies. The synchronized
 timestamp and session-file pipeline is ready for mounted capture development.
 
+### Robot-chassis Rig 30-second Smoke Test
+
+Session `20260623T202904Z` was captured after moving the camera, lidar, and
+Raspberry Pi onto a shared robot-chassis platform.
+
+- camera: 443 frames over 29.462 seconds;
+- camera frame gap p50/p95/max:
+  66.655/66.656/66.662 ms;
+- camera gap events above 1.5x nominal: 0;
+- lidar: 202 scans over 28.593 seconds;
+- lidar scan gap p50/p95/max:
+  142.218/142.751/143.120 ms;
+- lidar gap events above 1.5x nominal: 0;
+- lidar valid returns per scan min/median/max: 834/850/878;
+- oversized lidar scans above 1.5x median returns: 0;
+- shared monotonic-clock overlap: 28.495 seconds;
+- geometry remained marked invalid for reconstruction because the
+  lidar-to-camera transform has not been measured or calibrated.
+
+Result: pass. The mounted platform is stable enough for the next milestone:
+first-pass lidar-to-camera projection overlay.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis

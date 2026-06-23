@@ -69,9 +69,14 @@ Acceptance test:
 
 Goal: place camera geometry and lidar geometry in one metric frame.
 
+Status: robot-chassis rig session `20260623T202904Z` passed a 30-second
+camera/lidar smoke test with no detected cadence anomalies. The next task is a
+first-pass projection overlay using rough physical measurements.
+
 Deliverables:
 
 - calibrated or measured camera-to-lidar transform;
+- diagnostic image with 2D lidar points projected onto a camera frame;
 - timestamp association;
 - visual-to-lidar trajectory alignment;
 - fused PLY point cloud;

@@ -38,6 +38,15 @@ cd ~/fuse-recorder
 python3 capture_session.py --duration 30
 ```
 
+For a mounted-but-not-yet-calibrated rig, label the purpose explicitly:
+
+```bash
+python3 capture_session.py --duration 30 --capture-mode mounted_rig_smoke
+```
+
+The geometry flag should remain false until the rigid transform is measured or
+calibrated.
+
 Expected final output:
 
 ```text

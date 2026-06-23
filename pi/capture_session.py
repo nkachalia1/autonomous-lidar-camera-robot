@@ -97,10 +97,40 @@ def main() -> int:
     parser.add_argument("--height", type=int, default=1080)
     parser.add_argument("--framerate", type=int, default=15)
     parser.add_argument("--bitrate", type=int, default=4_000_000)
+    parser.add_argument(
+        "--capture-mode",
+        default="stationary_unmounted_test",
+        choices=[
+            "stationary_unmounted_test",
+            "mounted_rig_smoke",
+            "mounted_calibration",
+            "reconstruction_candidate",
+        ],
+        help=(
+            "Human-readable capture purpose stored in manifest.json. "
+            "This does not make geometry valid by itself."
+        ),
+    )
+    parser.add_argument(
+        "--geometry-valid-for-reconstruction",
+        action="store_true",
+        help=(
+            "Mark the session as geometrically valid. Use only after the rig is "
+            "rigid and calibrated."
+        ),
+    )
     args = parser.parse_args()
 
     if args.duration <= 0:
         parser.error("--duration must be positive")
+    if (
+        args.geometry_valid_for_reconstruction
+        and args.capture_mode == "stationary_unmounted_test"
+    ):
+        parser.error(
+            "--geometry-valid-for-reconstruction cannot be used with "
+            "stationary_unmounted_test"
+        )
     if not Path(args.port).exists():
         parser.error(f"lidar serial port does not exist: {args.port}")
     if shutil.which("rpicam-vid") is None:
@@ -164,6 +194,8 @@ def main() -> int:
 
     print(f"Session directory: {session_dir}")
     print("Stationary capture only. Do not touch or move the hardware.")
+    if not args.geometry_valid_for_reconstruction:
+        print("Geometry flag: invalid until rigid rig calibration is recorded.")
 
     try:
         with camera_log.open("wb") as camera_stream, lidar_log.open(
@@ -206,8 +238,8 @@ def main() -> int:
     manifest = {
         "schema_version": 1,
         "session_id": session_id,
-        "capture_mode": "stationary_unmounted_test",
-        "geometry_valid_for_reconstruction": False,
+        "capture_mode": args.capture_mode,
+        "geometry_valid_for_reconstruction": args.geometry_valid_for_reconstruction,
         "start_wall_utc": start_wall_utc,
         "start_monotonic_ns": start_monotonic_ns,
         "end_monotonic_ns": end_monotonic_ns,
