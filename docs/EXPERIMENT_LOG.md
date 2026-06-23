@@ -196,6 +196,27 @@ Session `20260623T040231Z` completed on the Raspberry Pi.
 Process-level capture passed. Desktop validation of timestamp duration, cadence,
 and shared-clock overlap remains required.
 
+The downloaded session passed desktop validation:
+
+- camera: 2,689 frames over 179.434 seconds;
+- camera gap p50/p95/max:
+  66.654/66.656/333.275 ms;
+- one camera gap event occurred after frame 532, corresponding to approximately
+  four missing nominal frame intervals;
+- lidar: 1,319 scans over 178.675 seconds;
+- lidar gap p50/p95/max:
+  135.467/135.860/270.959 ms;
+- one lidar double-length interval occurred after scan 1076;
+- that lidar scan contained 1,627 valid returns versus a median of 816,
+  indicating two revolutions were likely combined rather than silently lost;
+- lidar recorder reported zero timeouts and zero rejected scans;
+- shared monotonic-clock overlap: 178.596 seconds;
+- geometry remained invalid for reconstruction because the sensors were not
+  rigidly mounted.
+
+Result: pass with two explicitly recorded cadence anomalies. The synchronized
+timestamp and session-file pipeline is ready for mounted capture development.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis

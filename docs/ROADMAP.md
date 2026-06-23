@@ -25,9 +25,10 @@ Procedure: [HARDWARE_BRINGUP.md](HARDWARE_BRINGUP.md).
 Goal: record both sensors with one timestamp domain.
 
 Status: a stationary, explicitly non-geometric recorder prototype is ready for
-three-minute validation before the rigid mount is complete. Its 30-second smoke
-session passed file, timestamp-ordering, sample-gap, and shared-clock-overlap
-validation on 2026-06-23.
+mounted development. Its 30-second and three-minute sessions passed file,
+timestamp-ordering, cadence, and shared-clock-overlap validation on 2026-06-23.
+The three-minute run exposed one camera gap and one combined/delayed lidar scan;
+both are now reported explicitly by the validator.
 
 Deliverables:
 

@@ -28,6 +28,21 @@ def percentiles(values: list[float]) -> tuple[float, float, float]:
     return value_at(0.5), value_at(0.95), max(ordered)
 
 
+def gap_outliers(gaps: list[float]) -> tuple[float, list[tuple[int, float]], int]:
+    if not gaps:
+        return 0.0, [], 0
+    nominal = statistics.median(gaps)
+    outliers = [
+        (index, gap)
+        for index, gap in enumerate(gaps)
+        if gap > nominal * 1.5
+    ]
+    estimated_missing_intervals = sum(
+        max(round(gap / nominal) - 1, 0) for _, gap in outliers
+    )
+    return nominal, outliers, estimated_missing_intervals
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate a recorded sensor session")
     parser.add_argument("session", type=Path)
@@ -133,6 +148,17 @@ def main() -> int:
 
     camera_p50, camera_p95, camera_max = percentiles(camera_gaps_ms)
     lidar_p50, lidar_p95, lidar_max = percentiles(lidar_gaps_ms)
+    _, camera_outliers, camera_missing = gap_outliers(camera_gaps_ms)
+    _, lidar_outliers, lidar_missing = gap_outliers(lidar_gaps_ms)
+
+    lidar_median_valid = (
+        statistics.median(lidar_valid_counts) if lidar_valid_counts else 0
+    )
+    oversized_lidar_scans = [
+        (index, count)
+        for index, count in enumerate(lidar_valid_counts)
+        if lidar_median_valid and count > lidar_median_valid * 1.5
+    ]
 
     print(f"Session: {session}")
     print(f"Mode: {manifest['capture_mode']}")
@@ -142,16 +168,28 @@ def main() -> int:
         f"{camera_p50:.3f}/{camera_p95:.3f}/{camera_max:.3f}"
     )
     print(
+        f"Camera gap events >1.5x nominal: {len(camera_outliers)}; "
+        f"estimated missing frame intervals: {camera_missing}"
+    )
+    print(
         f"Lidar: {len(lidar_timestamps_us)} scans, "
         f"{lidar_duration_s:.3f}s, gaps ms p50/p95/max "
         f"{lidar_p50:.3f}/{lidar_p95:.3f}/{lidar_max:.3f}"
+    )
+    print(
+        f"Lidar gap events >1.5x nominal: {len(lidar_outliers)}; "
+        f"estimated missing scan intervals: {lidar_missing}"
     )
     if lidar_valid_counts:
         print(
             "Lidar valid returns per scan min/median/max: "
             f"{min(lidar_valid_counts)}/"
-            f"{statistics.median(lidar_valid_counts):.0f}/"
+            f"{lidar_median_valid:.0f}/"
             f"{max(lidar_valid_counts)}"
+        )
+        print(
+            "Oversized lidar scans >1.5x median returns: "
+            f"{len(oversized_lidar_scans)}"
         )
     print(f"Shared monotonic-clock overlap: {overlap_s:.3f}s")
     print(
@@ -161,6 +199,24 @@ def main() -> int:
 
     for warning in warnings:
         print(f"WARNING: {warning}", file=sys.stderr)
+    if camera_outliers:
+        details = ", ".join(
+            f"after frame {index}: {gap:.3f}ms"
+            for index, gap in camera_outliers[:5]
+        )
+        print(f"WARNING: camera gap events detected ({details})", file=sys.stderr)
+    if lidar_outliers:
+        details = ", ".join(
+            f"after scan {index}: {gap:.3f}ms"
+            for index, gap in lidar_outliers[:5]
+        )
+        print(f"WARNING: lidar gap events detected ({details})", file=sys.stderr)
+    if oversized_lidar_scans:
+        details = ", ".join(
+            f"scan {index}: {count} returns"
+            for index, count in oversized_lidar_scans[:5]
+        )
+        print(f"WARNING: oversized lidar scans detected ({details})", file=sys.stderr)
     for failure in failures:
         print(f"FAIL: {failure}", file=sys.stderr)
 
@@ -172,4 +228,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
