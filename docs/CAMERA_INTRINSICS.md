@@ -90,7 +90,7 @@ python reconstruction\project_lidar_overlay.py `
   --camera-forward-m -0.0737 `
   --camera-left-m 0.0051 `
   --camera-up-m 0.0953 `
-  --lidar-angle-offset-deg 115 `
+  --lidar-angle-offset-deg 125 `
   --roll-deg -2 `
   --pitch-deg -1
 ```

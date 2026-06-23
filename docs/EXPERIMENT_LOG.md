@@ -370,6 +370,14 @@ when projecting lidar returns. The calibrated single overlay and a calibrated
 `20260623T215235Z` under `data/calibration/`. These SVGs remain local generated
 artifacts and are not tracked by Git.
 
+User visual inspection selected `+125` degrees as the best calibrated-intrinsics
+angle panel. Update `config/rig_measurements.yaml` to use
+`provisional_lidar_angle_offset_deg=125`. The previous `+115` value is retained
+in the log as the best pre-intrinsics/FOV-based estimate, not as the current
+working value. A matching single-overlay SVG was generated as
+`data/calibration/20260623T215235Z-overlay-calibrated-angle-125.svg`, with 96
+projected returns inside the image and a +1.2 ms frame/scan timestamp delta.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
