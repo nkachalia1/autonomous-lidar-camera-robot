@@ -239,6 +239,32 @@ Raspberry Pi onto a shared robot-chassis platform.
 Result: pass. The mounted platform is stable enough for the next milestone:
 first-pass lidar-to-camera projection overlay.
 
+### First Mounted Calibration Overlay
+
+Session `20260623T212628Z` was captured with visual calibration targets already
+in the scene.
+
+- capture mode: `mounted_calibration`;
+- camera: 443 frames over 29.461 seconds;
+- camera gap events above 1.5x nominal: 0;
+- lidar: 215 scans over 28.619 seconds;
+- lidar gap events above 1.5x nominal: 0;
+- lidar valid returns per scan min/median/max: 805/818/829;
+- shared monotonic-clock overlap: 28.619 seconds;
+- overlay frame/scan timestamp delta: +0.3 ms;
+- geometry remained marked invalid for reconstruction pending extrinsic
+  calibration.
+
+The first angle sweep showed a clean projected scan-plane band. Visual
+inspection suggested that window tape favored approximately -90 to -60 degrees,
+while the opaque wall/pegboard favored approximately -150 to -120 degrees and
++120 to +150 degrees. Because glass and bright windows can produce unreliable
+lidar returns, the next calibration pass should prioritize opaque pegboard,
+wall, cardboard, and box edges.
+
+Result: pass for synchronized mounted calibration capture. Calibration remains
+inconclusive until a single opaque target provides an unambiguous best angle.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis

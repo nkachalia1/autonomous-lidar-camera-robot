@@ -106,6 +106,30 @@ For a good first pass, nearby lidar points should land along real object or wall
 intersections at the lidar scan height. The overlay does not need to be perfect
 yet.
 
+To compare multiple angle offsets in one image:
+
+```powershell
+python reconstruction\render_lidar_angle_sweep.py `
+  "$HOME\Downloads\20260623T212628Z" `
+  --background "$HOME\Downloads\20260623T212628Z\rig-calib-target.jpg" `
+  --output "data\calibration\20260623T212628Z-angle-sweep.svg" `
+  --camera-forward-m -0.0737 `
+  --camera-left-m 0.0051 `
+  --camera-up-m 0.0953 `
+  --angles "-180,-150,-120,-90,-60,-30,0,30,60,90,120,150"
+```
+
+Use opaque wall, pegboard, cardboard, or furniture surfaces first. Glass and
+bright windows can produce confusing lidar returns and should not be the main
+calibration reference.
+
+Do not rotate the lidar on the mount just to make an overlay angle look better.
+The `--lidar-angle-offset-deg` parameter exists to absorb the lidar's arbitrary
+zero-degree direction. Rotate the physical lidar only for mechanical reasons:
+clearing the side scan windows, reducing cable strain, improving rigidity, or
+avoiding an obstruction. If the lidar is physically rotated, capture a new
+calibration session and retune the angle offset.
+
 ## Interpreting Failure
 
 - No points visible: likely angle offset, forward direction, or camera pitch is
@@ -115,6 +139,8 @@ yet.
   wrong.
 - Points align in the center but drift at edges: camera intrinsics or lens
   distortion need calibration.
+- Different angle offsets appear to match different surfaces: prefer the result
+  that matches opaque surfaces; then tune pitch/height and intrinsics.
 
 The script currently uses approximate Pi Camera v2 intrinsics derived from field
 of view. Proper checkerboard calibration is still required before reconstruction.
