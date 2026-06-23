@@ -34,6 +34,20 @@ Run a read-only filesystem status check and a clean reboot. With power
 disconnected, inspect and mechanically protect the exposed electronics before
 reconnecting the lidar and repeating short sensor tests.
 
+### Follow-up: Lidar Motor Behavior
+
+After recovery, no `ultra_simple`, `simple_grabber`, or camera process was
+running and no process owned `/dev/ttyUSB0`. Running `simple_grabber` stopped
+the motor briefly during its cleanup, but the motor resumed after the program
+closed the serial port.
+
+This matches the SDK's Linux/DTR control path for models without direct motor
+speed control: opening the serial channel clears DTR to spin the motor, while a
+zero motor-speed request sets DTR. Closing the serial descriptor does not hold
+that stop state, so this adapter returns to spinning while it remains powered.
+This is treated as observed adapter behavior, not evidence of a lingering
+process.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
