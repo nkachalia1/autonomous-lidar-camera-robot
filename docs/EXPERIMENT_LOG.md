@@ -2,6 +2,38 @@
 
 Copy the template for every hardware or reconstruction experiment.
 
+## 2026-06-22 Accidental Conductive Contact and Restart
+
+### Event
+
+During preparation for the simultaneous camera/lidar load test, a metal object
+contacted the powered setup and the Raspberry Pi restarted. The SSH connection
+was lost. The exact contact location was not recorded.
+
+### Post-restart Measurements
+
+- Raspberry Pi booted and SSH access returned;
+- temperature: 45.5 degrees Celsius;
+- throttling flags for the new boot: `0x0`;
+- kernel log showed EXT4 orphan cleanup after the unclean shutdown;
+- the root filesystem subsequently remounted read/write;
+- the supplied kernel log contained no SD-card I/O, EXT4 corruption,
+  undervoltage, or reset errors;
+- boot warnings shown for ALSA, Bluetooth, Netplan permissions, firmware, and
+  Wi-Fi do not indicate damage from this event.
+
+### Result
+
+Recovered, pending a controlled storage and sensor recheck. The `0x0`
+throttling value applies to the current boot and cannot prove what electrically
+happened at the instant of contact.
+
+### Next Action
+
+Run a read-only filesystem status check and a clean reboot. With power
+disconnected, inspect and mechanically protect the exposed electronics before
+reconnecting the lidar and repeating short sensor tests.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
