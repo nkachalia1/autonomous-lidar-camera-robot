@@ -151,6 +151,21 @@ lidar scans in the Raspberry Pi monotonic-clock domain and marks the session as
 invalid for geometric reconstruction. The requested validation duration was
 reduced from ten minutes to three minutes, following a 30-second smoke test.
 
+### 30-second Timestamp Recorder Smoke Test
+
+Session `20260623T035923Z` was recorded on the Raspberry Pi.
+
+- the custom lidar recorder compiled successfully against the installed
+  SLAMTEC SDK;
+- session directory creation succeeded;
+- camera exit status: 0;
+- lidar exit status: 0;
+- manifest finalization succeeded.
+
+Process-level capture passed. File counts, monotonic timestamp ordering, sensor
+overlap, and sample gaps remain to be checked with
+`reconstruction/validate_session.py` before the three-minute capture.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
