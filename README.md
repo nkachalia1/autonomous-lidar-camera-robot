@@ -65,6 +65,9 @@ Milestone 0 camera and lidar visual evidence is available in
 Electronic bring-up is complete. Assemble and measure the rigid rig using
 [docs/RIG_ASSEMBLY.md](docs/RIG_ASSEMBLY.md) before synchronized capture work.
 
+A stationary timestamp-pipeline test can be performed without moving the loose
+setup by following [docs/STATIONARY_CAPTURE.md](docs/STATIONARY_CAPTURE.md).
+
 ## Known Limitations
 
 - Camera Module 2 uses a rolling shutter; fast handheld movement can bend

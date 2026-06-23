@@ -143,6 +143,14 @@ is packaging information, not an extrinsic calibration measurement. The photo
 also confirmed that the camera, Pi, lidar, USB adapter, and cables are not yet
 mechanically constrained as one rig.
 
+### Stationary Timestamp Recorder Prototype
+
+A pre-mount recorder was prepared to test camera and lidar timestamp plumbing
+without moving the loose setup. It records camera frame metadata and complete
+lidar scans in the Raspberry Pi monotonic-clock domain and marks the session as
+invalid for geometric reconstruction. The requested validation duration was
+reduced from ten minutes to three minutes, following a 30-second smoke test.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
