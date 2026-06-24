@@ -447,6 +447,52 @@ Next action: repeat a controlled motion test with stronger constraints:
 - render the same assumed-motion map to see whether the fan-shaped smearing
   collapses into sharper wall/object bands.
 
+### Guided 24-inch Controlled Room Motion Capture
+
+The power cable limited practical travel to 24 inches, so the second controlled
+motion capture repeated the 0.6096 m path with better guidance rather than
+forcing a 48-inch path under cable tension.
+
+Session `20260624T002731Z` was captured in `reconstruction_candidate` mode with
+the geometry-valid flag set.
+
+Desktop validation:
+
+- camera exit status: 0;
+- lidar exit status: 0;
+- camera: 443 frames over 29.461 seconds;
+- camera gap events above 1.5x nominal: 0;
+- lidar: 227 scans over 28.731 seconds;
+- lidar gap events above 1.5x nominal: 0;
+- oversized lidar scans above 1.5x median returns: 0;
+- lidar valid returns per scan min/median/max: 677/795/833;
+- shared monotonic-clock overlap: 28.724 seconds;
+- geometry valid for reconstruction: true;
+- validation result: pass with no cadence anomalies.
+
+The assumed-motion renderer produced:
+
+- `data/room-motion/20260624T002731Z-straight-24in-guided.svg`;
+- `data/room-motion/20260624T002731Z-straight-24in-guided.ply`;
+- `data/room-motion/20260624T002731Z-straight-24in-guided-preview.png`;
+- output points: 85,502;
+- used scans: 114 of 227;
+- filtered returns: 2,644 of 88,146 considered returns.
+
+Result: pass for sensor recording quality, but still inconclusive for clean room
+mapping. Compared with the first controlled motion session, this run eliminated
+the lidar cadence anomaly, which confirms the synchronized recorder is healthy.
+However, the assumed-motion map still contains fan-shaped/smeared point bands.
+The remaining error is therefore more likely trajectory/orientation error or
+the limits of the straight-line assumption than a timestamp or lidar data-loss
+problem.
+
+Next action: stop relying on hand-assumed trajectory for reconstruction
+quality. The next engineering slice should estimate rig motion from the lidar
+scans themselves, starting with 2D scan-to-scan matching/ICP or adding a simple
+wheel-odometry/encoder measurement. Until that exists, additional hand-pushed
+captures will mostly test operator discipline rather than improve the map.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
