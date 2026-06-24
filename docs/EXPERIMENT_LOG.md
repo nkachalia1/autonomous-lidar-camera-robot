@@ -401,6 +401,52 @@ output is not interpreted as a reconstruction result.
 Next action: capture a real 30-second controlled motion session with a measured
 24-inch straight push, then validate and render the assumed-motion lidar map.
 
+### First Controlled Room Motion Capture
+
+Session `20260624T001140Z` was captured in `reconstruction_candidate` mode with
+the geometry-valid flag set. The intended protocol was a 30-second capture with
+a 24-inch/0.6096 m straight motion from 5 seconds to 25 seconds.
+
+Desktop validation:
+
+- camera exit status: 0;
+- lidar exit status: 0;
+- camera: 443 frames over 29.461 seconds;
+- camera gap events above 1.5x nominal: 0;
+- lidar: 226 scans over 28.734 seconds;
+- lidar gap events above 1.5x nominal: 1, after scan 21;
+- oversized lidar scans above 1.5x median returns: 1, scan 21 with 1,670
+  returns versus median 800;
+- shared monotonic-clock overlap: 28.734 seconds;
+- geometry valid for reconstruction: true;
+- validation result: pass with one lidar cadence anomaly.
+
+The assumed-motion renderer produced:
+
+- `data/room-motion/20260624T001140Z-straight-24in.svg`;
+- `data/room-motion/20260624T001140Z-straight-24in.ply`;
+- `data/room-motion/20260624T001140Z-straight-24in-preview.png`;
+- output points: 88,507;
+- used scans: 113 of 226;
+- filtered returns: 1,884 of 90,391 considered returns.
+
+Result: pass for synchronized reconstruction-candidate capture and desktop map
+generation. The first assumed-motion map is not yet a clean room
+reconstruction. It shows recognizable repeated structures, but also
+fan-shaped/smeared point bands near the rig, which is consistent with rig
+rotation, uncertain motion timing, or the limitations of forcing all scans onto
+a straight-line trajectory. The one early oversized lidar scan should be watched
+but is not by itself a capture failure.
+
+Next action: repeat a controlled motion test with stronger constraints:
+
+- use a longer measured path, preferably 48 inches/1.2192 m;
+- physically guide the wheels along a straight edge or wall/board;
+- keep the rig orientation fixed during the push;
+- keep the same 5-second still, 20-second motion, 5-second still timing; and
+- render the same assumed-motion map to see whether the fan-shaped smearing
+  collapses into sharper wall/object bands.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
