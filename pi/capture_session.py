@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Record a stationary camera/lidar session on a Raspberry Pi."""
+"""Record a timestamped camera/lidar session on a Raspberry Pi."""
 
 from __future__ import annotations
 
@@ -78,8 +78,9 @@ def terminate(process: subprocess.Popen[bytes] | None) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Record a stationary timestamped camera/lidar session. "
-            "Do not move an unmounted sensor setup."
+            "Record a timestamped camera/lidar session. "
+            "Move the rig only when the selected capture mode and calibration "
+            "state make that safe."
         )
     )
     parser.add_argument("--duration", type=int, default=180, help="Seconds to record")
@@ -193,7 +194,12 @@ def main() -> int:
     lidar_status: int | None = None
 
     print(f"Session directory: {session_dir}")
-    print("Stationary capture only. Do not touch or move the hardware.")
+    if args.capture_mode == "stationary_unmounted_test":
+        print("Stationary capture only. Do not touch or move the hardware.")
+    elif args.capture_mode == "reconstruction_candidate":
+        print("Reconstruction candidate: move only as specified by the lab protocol.")
+    else:
+        print("Calibration/smoke capture: keep the rig still unless instructed.")
     if not args.geometry_valid_for_reconstruction:
         print("Geometry flag: invalid until rigid rig calibration is recorded.")
 

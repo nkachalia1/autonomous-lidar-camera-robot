@@ -378,6 +378,29 @@ working value. A matching single-overlay SVG was generated as
 `data/calibration/20260623T215235Z-overlay-calibrated-angle-125.svg`, with 96
 projected returns inside the image and a +1.2 ms frame/scan timestamp delta.
 
+### Controlled Room Motion Preparation
+
+Hypothesis: before attempting full room or hallway reconstruction, a short,
+measured straight-line rig motion should produce a coherent diagnostic lidar map
+when scans are placed along a known 24-inch path. This verifies motion capture
+plumbing and lidar metric geometry without claiming SLAM.
+
+Prepared:
+
+- runbook: `docs/CONTROLLED_ROOM_MOTION.md`;
+- renderer: `reconstruction/render_assumed_motion_lidar_map.py`;
+- Pi recorder message updated so `reconstruction_candidate` captures no longer
+  print the stale stationary-only warning.
+
+Desktop smoke test: the assumed-motion renderer was run against existing
+stationary calibration session `20260623T215235Z` only to verify the code path.
+It wrote an SVG and PLY under `data/room-motion/`, using 110 of 219 scans and
+producing 86,409 output points. Because that source session was stationary, the
+output is not interpreted as a reconstruction result.
+
+Next action: capture a real 30-second controlled motion session with a measured
+24-inch straight push, then validate and render the assumed-motion lidar map.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
