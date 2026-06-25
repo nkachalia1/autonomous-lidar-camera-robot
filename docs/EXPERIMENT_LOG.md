@@ -1055,6 +1055,61 @@ Next action: either install/run real COLMAP to convert the text model to binary,
 or choose a Gaussian-splatting implementation and inspect its expected input
 format before adapting the export.
 
+### GraphDECO Gaussian-splatting Input Check and WSL COLMAP Conversion
+
+The official GraphDECO/Inria 3D Gaussian Splatting repository was inspected as
+the first downstream target. Its README trains from a source path containing a
+COLMAP or NeRF Synthetic dataset. The source loader first looks for binary
+COLMAP files in `sparse/0`, then falls back to text `images.txt` and
+`cameras.txt`; its text intrinsics reader asserts `PINHOLE`, matching the
+current undistorted export.
+
+The user's Start Menu shortcut was resolved to:
+
+```text
+C:\Program Files\WSL\wslg.exe -d Ubuntu-22.04 --cd "~" -- colmap gui
+```
+
+Running COLMAP from WSL confirmed:
+
+- COLMAP version: 3.7;
+- CUDA: not available in that WSL build;
+- `model_converter` and `model_analyzer` commands are available.
+
+Real COLMAP conversion of the export passed. The text model in
+`data/exports/colmap/20260625T214456Z-steady-undistorted/sparse/0` was converted
+to binary with `colmap model_converter --output_type BIN`, producing:
+
+- `cameras.bin`: 64 bytes;
+- `images.bin`: 881 bytes;
+- `points3D.bin`: 16,685 bytes.
+
+The binary files were copied into `sparse/0` beside the text files so downstream
+tools can use either format. `colmap model_analyzer` on `sparse/0` reported:
+
+```text
+Cameras: 1
+Images: 9
+Registered images: 9
+Points: 327
+Observations: 0
+Mean track length: 0.000000
+Mean observations per image: 0.000000
+Mean reprojection error: 3.371872px
+```
+
+Result: pass for real COLMAP text-to-binary compatibility and pass for
+GraphDECO input-shape compatibility. Caveat: the model has zero COLMAP feature
+observations because the sparse seed points came from the project diagnostic
+triangulator and are not linked to `images.txt` keypoint tracks. This is likely
+acceptable for a GraphDECO loader/training smoke test, but it is not a complete
+COLMAP SfM reconstruction.
+
+Next action: run a minimal GraphDECO training smoke test from this export folder
+in a separate environment. Expect the first useful outcome to be either "loader
+accepts the dataset and starts optimization" or a concrete loader error that
+defines the next adapter change.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
