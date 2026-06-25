@@ -827,6 +827,71 @@ frame-to-frame visual odometry at shorter intervals, and compare the camera
 heading changes against lidar ICP without including the stationary start/end
 segments.
 
+### Dense Camera Motion over the Steady-motion Window
+
+The camera-only motion comparison was repeated using denser samples inside the
+actual moving part of session `20260625T214456Z`, instead of sampling across the
+stationary start and stop. A small sampling sweep showed that `7` to `20`
+seconds with `9` camera samples gave the cleanest direction agreement without
+including the start/stop wobble.
+
+Command run on the Windows workstation:
+
+```text
+python reconstruction\render_camera_pose_timeline.py `
+  "$HOME\Downloads\20260625T214456Z" `
+  --trajectory "data\room-motion\20260625T214456Z-icp-trajectory.json" `
+  --output "data\fusion\20260625T214456Z-camera-pose-timeline-motion-steady.svg" `
+  --json-output "data\fusion\20260625T214456Z-camera-poses-motion-steady.json" `
+  --sample-count 9 `
+  --sample-start-s 7 `
+  --sample-end-s 20 `
+  --lidar-angle-offset-deg 125
+
+python reconstruction\compare_camera_lidar_motion.py `
+  "$HOME\Downloads\20260625T214456Z" `
+  --pose-json "data\fusion\20260625T214456Z-camera-poses-motion-steady.json" `
+  --intrinsics "config\camera_intrinsics_pi_camera_v2_1920x1080.yaml" `
+  --output "data\fusion\20260625T214456Z-camera-lidar-motion-steady.svg" `
+  --json-output "data\fusion\20260625T214456Z-camera-lidar-motion-steady.json" `
+  --min-lidar-step-m 0.025
+```
+
+Outputs:
+
+- `data/fusion/20260625T214456Z-camera-pose-timeline-motion-steady.svg`;
+- `data/fusion/20260625T214456Z-camera-poses-motion-steady.json`;
+- `data/fusion/20260625T214456Z-camera-lidar-motion-steady.svg`;
+- `data/fusion/20260625T214456Z-camera-lidar-motion-steady.json`.
+
+Measurements:
+
+- sampled frames: 9, from frame 105 at 6.999 seconds to frame 300 at
+  19.996 seconds;
+- neighboring frame pairs: 8;
+- successful visual-motion pairs: 7;
+- median successful-pair pose inliers: 134;
+- moving-window alignment RMSE after arbitrary-scale similarity fit: 0.009 m;
+- all-sample RMSE after applying that fit: 0.020 m;
+- median moving-pair direction error: 4.1 degrees;
+- maximum moving-pair direction error: 5.4 degrees;
+- lidar sampled path length: 0.475 m;
+- aligned camera sampled path length: 0.436 m.
+
+The only rejected pair was the last pair, frame 276 to frame 300, with 13 pose
+inliers after essential-matrix recovery. All earlier steady-motion pairs passed
+with 53 to 198 pose inliers and direction errors below 5.5 degrees.
+
+Result: pass. Restricting the comparison to the steady-motion portion gives a
+substantially cleaner camera/lidar direction check than sampling across the full
+session. The camera trajectory remains arbitrary-scale monocular VO, but it
+agrees well with the lidar ICP direction during the usable motion segment.
+
+Next action: promote this steady-window comparison as the current validation
+procedure for room captures. The next reconstruction step should use these
+camera poses to back-project sparse tracked image features into a lidar-assisted
+2.5D/3D diagnostic view, while keeping the lidar map as the metric anchor.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
