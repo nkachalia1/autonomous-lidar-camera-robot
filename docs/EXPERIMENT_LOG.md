@@ -772,6 +772,61 @@ Next action: use the contact sheet to decide whether the camera view has enough
 texture and overlap for visual feature tracking. If it does, estimate a
 camera-only motion track and compare it against the lidar ICP trajectory.
 
+### Camera-only Motion Compared with Lidar ICP
+
+The sampled camera thumbnails from `20260625T214456Z` were used for a
+monocular visual-odometry sanity check. OpenCV ORB features were matched between
+neighboring sampled frames, an essential matrix was estimated for each pair, and
+successful arbitrary-scale camera steps were similarity-aligned to the lidar ICP
+camera poses. Because a monocular camera has no metric scale by itself, this
+test checks feature health and motion-direction consistency rather than treating
+the camera-only path as an independent metric measurement.
+
+Command run on the Windows workstation:
+
+```text
+python reconstruction\compare_camera_lidar_motion.py `
+  "$HOME\Downloads\20260625T214456Z" `
+  --pose-json "data\fusion\20260625T214456Z-camera-poses.json" `
+  --intrinsics "config\camera_intrinsics_pi_camera_v2_1920x1080.yaml" `
+  --output "data\fusion\20260625T214456Z-camera-lidar-motion.svg" `
+  --json-output "data\fusion\20260625T214456Z-camera-lidar-motion.json"
+```
+
+Outputs:
+
+- `data/fusion/20260625T214456Z-camera-lidar-motion.svg`;
+- `data/fusion/20260625T214456Z-camera-lidar-motion.json`.
+
+Measurements:
+
+- sampled frames: 12;
+- neighboring frame pairs: 11;
+- successful visual-motion pairs: 6;
+- median successful-pair pose inliers: 270.5;
+- moving-window alignment RMSE after arbitrary-scale similarity fit: 0.023 m;
+- all-sample RMSE after applying that fit: 0.034 m;
+- median moving-pair direction error: 9.1 degrees;
+- maximum moving-pair direction error: 29.4 degrees;
+- lidar sampled path length: 0.572 m;
+- aligned camera sampled path length: 0.566 m.
+
+The rejected pairs were mostly the initial/final still portions where lidar
+motion was zero or near zero and monocular pose recovery had too little parallax.
+The middle moving portion produced hundreds of ORB matches per pair and enough
+essential-matrix inliers for a plausible direction comparison.
+
+Result: pass for a first camera-motion sanity check. The Pi Camera v2 frames
+contain enough texture and overlap in this room capture for sparse feature
+tracking during the moving portion. This does not yet produce metric camera
+odometry or 3D reconstruction, but it supports using camera feature tracks as a
+diagnostic against lidar ICP.
+
+Next action: decode a denser sequence over only the motion window, run
+frame-to-frame visual odometry at shorter intervals, and compare the camera
+heading changes against lidar ICP without including the stationary start/end
+segments.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
