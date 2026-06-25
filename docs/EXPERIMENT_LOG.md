@@ -493,6 +493,41 @@ scans themselves, starting with 2D scan-to-scan matching/ICP or adding a simple
 wheel-odometry/encoder measurement. Until that exists, additional hand-pushed
 captures will mostly test operator discipline rather than improve the map.
 
+### Lidar-height Target Retest After Camera Adjustment
+
+The camera and tape targets were physically adjusted, then session
+`20260625T195941Z` was captured in `mounted_calibration` mode. Desktop
+validation passed:
+
+- camera: 443 frames over 29.461 seconds;
+- camera gap events above 1.5x nominal: 0;
+- lidar: 222 scans over 28.771 seconds;
+- lidar gap events above 1.5x nominal: 0;
+- lidar valid returns per scan min/median/max: 809/821/835;
+- shared monotonic-clock overlap: 28.758 seconds.
+
+Visual overlay sweeps were generated from
+`lidar-height-target.jpg`. After the camera adjustment, the older working
+values `lidar_angle_offset_deg=125`, `roll=-2`, and `pitch=-1` no longer aligned
+with the tape targets. The user selected the concentrated blue line at
+`lidar_angle_offset_deg=155` as the best angle panel and the right concentrated
+pink line in `pitch=+8` as closest to the tape height. A follow-up roll sweep at
+`angle=155` and `pitch=+8` found `roll=+2` as the best tested roll, but only the
+concentrated pink line on the left crossed the left-most tape marker; markers 2,
+3, and 4 were not crossed.
+
+Result: pass for recording quality but inconclusive for extrinsic calibration.
+Because one marker can be matched while the other markers cannot, the four-marker
+setup is not a reliable single calibration constraint. The current targets appear
+to span different surfaces/depths or surfaces that are not all visible to the
+same lidar scan-plane returns. Do not keep overfitting roll/pitch/yaw against
+this target.
+
+Next action: build a single-plane calibration target: one flat, opaque board or
+box face, perpendicular enough to the lidar/camera view, with one continuous
+horizontal tape stripe at measured lidar scan height and vertical strips crossing
+that stripe. Re-capture once that single-plane target is set up.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
