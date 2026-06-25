@@ -182,6 +182,22 @@ distance is close to `0.6096 m` but the ICP path is short, the map scale is
 reasonable and the path-length estimate is biased. If the measured board
 distance is also short, the reconstruction is compressing metric scale.
 
+If the automatic candidates do not label the reference boards, render the manual
+picker instead:
+
+```powershell
+python reconstruction\render_lidar_measurement_picker.py `
+  "$HOME\Downloads\$session" `
+  --trajectory "data\room-motion\$session-icp-trajectory.json" `
+  --output "data\room-motion\$session-measure-board-distance.html" `
+  --lidar-angle-offset-deg 125 `
+  --expected-distance-m 0.6096
+```
+
+Open the generated HTML file, click the center of Board A's lidar-return
+cluster, then click the center of Board B's cluster. Copy the measurement text
+back into the experiment log.
+
 ## Expected Failure Symptoms
 
 - The map looks like several rotated copies of the same wall: the rig turned.
