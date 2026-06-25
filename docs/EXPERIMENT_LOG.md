@@ -732,6 +732,46 @@ Next action: extract a small set of actual camera still frames at the sampled
 indices, then render a contact sheet beside the top-down pose timeline so each
 image can be inspected with its estimated capture pose.
 
+### Camera Pose Contact Sheet
+
+A follow-up workstation artifact was generated from the pose JSON above. Since
+neither system `ffmpeg` nor OpenCV was available in the project Python
+environment, the lightweight `imageio-ffmpeg` Python package was installed to
+provide an ffmpeg executable for H.264 frame extraction.
+
+Command run on the Windows workstation:
+
+```text
+python reconstruction\render_camera_pose_contact_sheet.py `
+  "$HOME\Downloads\20260625T214456Z" `
+  --pose-json "data\fusion\20260625T214456Z-camera-poses.json" `
+  --output "data\fusion\20260625T214456Z-camera-pose-contact-sheet.svg" `
+  --thumbnail-width 640 `
+  --jpeg-quality 4
+```
+
+Outputs:
+
+- `data/fusion/20260625T214456Z-camera-pose-contact-sheet.svg`;
+- 12 extracted JPEG thumbnails in
+  `data/fusion/20260625T214456Z-camera-samples/`.
+
+Measurements:
+
+- sampled frames extracted: 12;
+- extracted frame indices: 0, 40, 80, 121, 161, 201, 241, 281, 321, 362,
+  402, and 442;
+- contact-sheet SVG size: about 208 KB;
+- manual thumbnail inspection confirmed a valid decoded camera image.
+
+Result: pass. Each sampled camera frame now has a visual thumbnail and an
+estimated 2D camera pose from the ICP lidar trajectory. This gives us a
+human-checkable fusion artifact before attempting any 3D textured geometry.
+
+Next action: use the contact sheet to decide whether the camera view has enough
+texture and overlap for visual feature tracking. If it does, estimate a
+camera-only motion track and compare it against the lidar ICP trajectory.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
