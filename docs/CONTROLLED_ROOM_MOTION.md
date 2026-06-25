@@ -129,6 +129,12 @@ reasonable first ICP result should estimate a similar path length and only a
 small net rotation. It does not need to be exact: hand pushing, wheel slip,
 scene symmetry, and glass/window returns can all bias the estimate.
 
+By default, the ICP renderer skips oversized lidar scans whose valid return
+count is more than 1.5 times the session median. This matches the validation
+warning threshold and prevents one merged/oversized scan from influencing the
+trajectory. Use `--max-valid-points-ratio 0` only when intentionally debugging
+raw scan anomalies.
+
 ## Expected Failure Symptoms
 
 - The map looks like several rotated copies of the same wall: the rig turned.

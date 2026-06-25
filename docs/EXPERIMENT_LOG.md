@@ -548,6 +548,53 @@ captures, then add either stronger scan-matching validation metrics or simple
 wheel odometry so the trajectory can be checked against an independent motion
 measurement.
 
+### ICP Lidar Odometry Repeatability Run
+
+Session `20260625T211553Z` repeated the 24-inch reconstruction-candidate motion
+test. Desktop validation passed with one lidar timing anomaly:
+
+- camera: 443 frames over 29.461 seconds;
+- camera gap events above 1.5x nominal: 0;
+- lidar: 224 scans over 28.782 seconds;
+- lidar gap events above 1.5x nominal: 1;
+- oversized lidar scans above 1.5x median returns: 1;
+- lidar valid returns per scan min/median/max: 661/718/1398;
+- shared monotonic-clock overlap: 28.735 seconds;
+- geometry valid for reconstruction: true.
+
+The first ICP render, before adding an oversized-scan filter, estimated:
+
+- selected scans for ICP: 40;
+- ICP steps: 39;
+- rejected ICP steps: 0;
+- estimated path length: 0.557 m;
+- estimated net displacement: 0.497 m;
+- estimated net rotation: -0.31 degrees;
+- map output points: 72,285.
+
+Because validation identified scan 141 as oversized and it fell inside the
+motion window, the ICP renderer was updated to skip scans whose
+`valid_point_count` is more than 1.5 times the session median by default. With
+that filter enabled, the repeat run estimated:
+
+- skipped oversized scans: 1;
+- estimated path length: 0.571 m;
+- estimated net displacement: 0.499 m;
+- estimated net rotation: 1.03 degrees;
+- map output points: 72,285.
+
+Result: pass for repeatability. The fresh run is consistent with the previous
+guided run (`0.553 m` estimated path length) and again improves the visual map
+relative to the assumed-straight renderer. Both ICP runs remain shorter than the
+24-inch physical target (`0.6096 m`), so scale/trajectory bias is still present.
+This is acceptable for the current milestone because the objective was reducing
+smear and proving repeatable lidar odometry, not final metric SLAM.
+
+Next action: keep ICP as the lidar-side baseline and add an independent motion
+check next: either manually measured start/end pose markers in the map, a
+wheel-encoder/odometry sensor, or a constrained straight-track capture where
+the rig cannot yaw.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session

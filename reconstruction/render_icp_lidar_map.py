@@ -252,11 +252,15 @@ def motion_scan_indices(
     motion_start_s: float,
     motion_end_s: float,
     match_stride: int,
+    skipped_scan_indices: set[int],
 ) -> list[int]:
     indices = [
         scan_index
         for scan_index in range(len(scans))
-        if motion_start_s <= elapsed_seconds(scans, scan_index) <= motion_end_s
+        if (
+            motion_start_s <= elapsed_seconds(scans, scan_index) <= motion_end_s
+            and scan_index not in skipped_scan_indices
+        )
     ]
     if not indices:
         raise ValueError("no scans fall inside the requested motion window")
@@ -283,8 +287,15 @@ def estimate_trajectory(
     min_pairs: int,
     max_step_translation_m: float,
     max_step_rotation_deg: float,
+    skipped_scan_indices: set[int],
 ) -> tuple[list[tuple[int, Pose2]], dict[str, Any]]:
-    selected_indices = motion_scan_indices(scans, motion_start_s, motion_end_s, match_stride)
+    selected_indices = motion_scan_indices(
+        scans,
+        motion_start_s,
+        motion_end_s,
+        match_stride,
+        skipped_scan_indices,
+    )
     selected_points = {
         scan_index: scan_to_points(
             scans[scan_index],
@@ -355,6 +366,8 @@ def estimate_trajectory(
         "estimated_net_displacement_m": math.hypot(final_pose[0], final_pose[1]),
         "estimated_net_rotation_deg": math.degrees(final_pose[2]),
         "mean_accepted_step_m": sum(step_lengths) / len(step_lengths) if step_lengths else 0.0,
+        "skipped_scan_count": len(skipped_scan_indices),
+        "skipped_scan_indices": sorted(skipped_scan_indices),
         "icp_records": icp_records,
     }
     return trajectory, summary
@@ -391,6 +404,7 @@ def collect_map_points(
     min_quality: int,
     render_scan_stride: int,
     render_point_stride: int,
+    skipped_scan_indices: set[int],
 ) -> tuple[list[ColoredPoint], dict[str, Any]]:
     first_timestamp_us = int(scans[0]["timestamp_us"])
     last_timestamp_us = int(scans[-1]["timestamp_us"])
@@ -401,6 +415,8 @@ def collect_map_points(
     filtered_returns = 0
 
     for scan_index, scan in enumerate(scans):
+        if scan_index in skipped_scan_indices:
+            continue
         if scan_index % render_scan_stride != 0:
             continue
         considered_scans += 1
@@ -430,6 +446,7 @@ def collect_map_points(
         "filtered_returns": filtered_returns,
         "output_points": len(points),
         "lidar_duration_s": duration_s,
+        "skipped_scan_count": len(skipped_scan_indices),
     }
 
 
@@ -588,7 +605,8 @@ def render_svg(
                 f'<text x="70" y="{legend_y + 12}" fill="#94a3b8" font-size="14">'
                 f'ICP steps: {trajectory_summary["icp_step_count"]}; rejected: '
                 f'{trajectory_summary["rejected_steps"]}; selected scans: '
-                f'{trajectory_summary["selected_scan_count"]}; map points: '
+                f'{trajectory_summary["selected_scan_count"]}; skipped scans: '
+                f'{trajectory_summary["skipped_scan_count"]}; map points: '
                 f'{map_summary["output_points"]:,} ({len(displayed_points):,} displayed)</text>'
             ),
             (
@@ -817,6 +835,41 @@ def write_trajectory_json(
     output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
+def median(values: list[int]) -> float:
+    if not values:
+        return 0.0
+    ordered = sorted(values)
+    middle = len(ordered) // 2
+    if len(ordered) % 2:
+        return float(ordered[middle])
+    return (ordered[middle - 1] + ordered[middle]) / 2.0
+
+
+def valid_point_count(scan: dict[str, Any]) -> int:
+    value = scan.get("valid_point_count")
+    if isinstance(value, int):
+        return value
+    return len(scan.get("points", []))
+
+
+def oversized_scan_indices(
+    scans: list[dict[str, Any]],
+    max_valid_points_ratio: float,
+) -> set[int]:
+    if max_valid_points_ratio <= 0:
+        return set()
+    counts = [valid_point_count(scan) for scan in scans]
+    median_count = median(counts)
+    if median_count <= 0:
+        return set()
+    threshold = median_count * max_valid_points_ratio
+    return {
+        scan_index
+        for scan_index, count in enumerate(counts)
+        if count > threshold
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Estimate a rough 2D lidar trajectory with ICP and render a map"
@@ -842,6 +895,15 @@ def main() -> int:
     parser.add_argument("--min-pairs", type=int, default=80)
     parser.add_argument("--max-step-translation-m", type=float, default=0.12)
     parser.add_argument("--max-step-rotation-deg", type=float, default=8.0)
+    parser.add_argument(
+        "--max-valid-points-ratio",
+        type=float,
+        default=1.5,
+        help=(
+            "Skip scans with valid_point_count above this multiple of the "
+            "session median; use 0 to disable"
+        ),
+    )
     parser.add_argument("--max-points-in-svg", type=int, default=80000)
     parser.add_argument("--max-points-in-png", type=int, default=120000)
     args = parser.parse_args()
@@ -860,6 +922,7 @@ def main() -> int:
     session = args.session.resolve()
     manifest = load_json(session / "manifest.json")
     scans = load_scans(session / manifest["lidar"]["scans"])
+    skipped_scan_indices = oversized_scan_indices(scans, args.max_valid_points_ratio)
 
     trajectory, trajectory_summary = estimate_trajectory(
         scans,
@@ -877,6 +940,7 @@ def main() -> int:
         args.min_pairs,
         args.max_step_translation_m,
         args.max_step_rotation_deg,
+        skipped_scan_indices,
     )
     points, map_summary = collect_map_points(
         scans,
@@ -887,6 +951,7 @@ def main() -> int:
         args.min_quality,
         args.render_scan_stride,
         args.render_point_stride,
+        skipped_scan_indices,
     )
 
     render_svg(
@@ -919,6 +984,7 @@ def main() -> int:
     print(f"Selected scans for ICP: {trajectory_summary['selected_scan_count']}")
     print(f"ICP steps: {trajectory_summary['icp_step_count']}")
     print(f"Rejected ICP steps: {trajectory_summary['rejected_steps']}")
+    print(f"Skipped oversized scans: {trajectory_summary['skipped_scan_count']}")
     print(f"Estimated path length: {trajectory_summary['estimated_path_length_m']:.3f} m")
     print(f"Estimated net displacement: {trajectory_summary['estimated_net_displacement_m']:.3f} m")
     print(f"Estimated net rotation: {trajectory_summary['estimated_net_rotation_deg']:.2f} deg")
