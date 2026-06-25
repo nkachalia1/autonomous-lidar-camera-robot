@@ -689,6 +689,49 @@ captures. Do not over-correct map scale from ICP path length alone. The next
 engineering improvement should either fuse wheel odometry with lidar ICP or
 derive a more robust trajectory quality metric from landmark consistency.
 
+### Camera-frame Pose Timeline from ICP Trajectory
+
+The first camera/lidar fusion artifact was generated from the same clean
+reference-board session, `20260625T214456Z`. This test associates Pi Camera v2
+frame timestamps with the ICP-derived lidar trajectory using the shared
+Raspberry Pi monotonic clock.
+
+Command run on the Windows workstation:
+
+```text
+python reconstruction\render_camera_pose_timeline.py `
+  "$HOME\Downloads\20260625T214456Z" `
+  --trajectory "data\room-motion\20260625T214456Z-icp-trajectory.json" `
+  --output "data\fusion\20260625T214456Z-camera-pose-timeline.svg" `
+  --json-output "data\fusion\20260625T214456Z-camera-poses.json" `
+  --sample-count 12 `
+  --lidar-angle-offset-deg 125
+```
+
+Outputs:
+
+- `data/fusion/20260625T214456Z-camera-pose-timeline.svg`;
+- `data/fusion/20260625T214456Z-camera-poses.json`.
+
+Measurements:
+
+- camera frames available: 443;
+- sampled camera poses: 12;
+- first three sampled frames were clamped to the initial ICP pose because the
+  useful ICP motion window starts after the initial still period;
+- later sampled poses follow the estimated path from about `(-0.117, -0.017) m`
+  at 8.065 seconds to about `(-0.553, -0.299) m` at the end of the trajectory;
+- final frames were clamped to the final ICP pose after motion ended.
+
+Result: pass for timestamp/pose association. This is not a 3D reconstruction
+yet, but it proves that camera frames can be assigned metric 2D rig poses from
+the lidar trajectory. The camera offset used in this artifact is still the rough
+measured offset, not a finalized extrinsic calibration.
+
+Next action: extract a small set of actual camera still frames at the sampled
+indices, then render a contact sheet beside the top-down pose timeline so each
+image can be inspected with its estimated capture pose.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
