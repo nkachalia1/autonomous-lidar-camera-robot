@@ -1006,6 +1006,55 @@ splatting pipeline. If the downstream tool rejects the text model or the
 `PINHOLE` undistorted images, add a second export mode with raw images and a
 `FULL_OPENCV` camera model.
 
+### Local COLMAP Text-model Preview
+
+The workstation did not have a `colmap` executable available on `PATH`, so the
+first import test used a lightweight local parser for the exported COLMAP text
+model. The parser reads `cameras.txt`, `images.txt`, and `points3D.txt`, rebuilds
+camera centers from COLMAP `qvec`/`tvec`, checks image-file presence and
+quaternion norms, and renders a preview SVG.
+
+Command run on the Windows workstation:
+
+```text
+python reconstruction\render_colmap_export_preview.py `
+  "data\exports\colmap\20260625T214456Z-steady-undistorted" `
+  --output "data\exports\colmap\20260625T214456Z-steady-undistorted\preview.svg" `
+  --json-output "data\exports\colmap\20260625T214456Z-steady-undistorted\preview_validation.json"
+```
+
+Outputs:
+
+- `data/exports/colmap/20260625T214456Z-steady-undistorted/preview.svg`;
+- `data/exports/colmap/20260625T214456Z-steady-undistorted/preview_validation.json`.
+
+Measurements:
+
+- validation result: pass;
+- parsed cameras/images/points: 1 / 9 / 327;
+- missing images: 0;
+- reconstructed camera path length from COLMAP poses: 0.475 m;
+- quaternion norm range: 0.9999999999995166 to 1.0000000000004476;
+- median point reprojection/error field from `points3D.txt`: 3.48 px;
+- point bounds:
+  - x: +0.07 to +4.57 m;
+  - y: -1.46 to +0.05 m;
+  - z: +0.01 to +0.61 m;
+- camera-center bounds:
+  - x: -0.50 to -0.10 m;
+  - y: -0.26 to -0.01 m;
+  - z: +0.0953 m.
+
+Result: pass for local text-model import and preview. The export is internally
+coherent when parsed independently from the exporter, and the recovered camera
+path length matches the steady-window lidar/camera pose path. This still does
+not prove compatibility with a real COLMAP binary database or a Gaussian
+splatting trainer.
+
+Next action: either install/run real COLMAP to convert the text model to binary,
+or choose a Gaussian-splatting implementation and inspect its expected input
+format before adapting the export.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
