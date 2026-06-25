@@ -952,6 +952,60 @@ on a scene with more deliberate visual landmarks at known heights/depths. Use
 the PLY/SVG point cloud to check whether those landmarks appear in the expected
 relative locations before attempting denser reconstruction.
 
+### COLMAP-style Export for Downstream Gaussian-splatting Tests
+
+The steady-window camera frames and lidar-anchored poses from
+`20260625T214456Z` were exported as a COLMAP-style text model. This is a bridge
+artifact for future photogrammetry or Gaussian-splatting experiments; it does
+not mean COLMAP, NeRF, or Gaussian splatting has been run yet.
+
+Command run on the Windows workstation:
+
+```text
+python reconstruction\export_colmap_camera_poses.py `
+  "$HOME\Downloads\20260625T214456Z" `
+  --pose-json "data\fusion\20260625T214456Z-camera-poses-motion-steady.json" `
+  --intrinsics "config\camera_intrinsics_pi_camera_v2_1920x1080.yaml" `
+  --points-json "data\fusion\20260625T214456Z-sparse-fused-feature-map.json" `
+  --output-dir "data\exports\colmap\20260625T214456Z-steady-undistorted" `
+  --undistort-images `
+  --image-width 1920 `
+  --jpeg-quality 95
+```
+
+Outputs:
+
+- `data/exports/colmap/20260625T214456Z-steady-undistorted/images/`;
+- `data/exports/colmap/20260625T214456Z-steady-undistorted/sparse/0/cameras.txt`;
+- `data/exports/colmap/20260625T214456Z-steady-undistorted/sparse/0/images.txt`;
+- `data/exports/colmap/20260625T214456Z-steady-undistorted/sparse/0/points3D.txt`;
+- `data/exports/colmap/20260625T214456Z-steady-undistorted/export_manifest.json`.
+
+Measurements:
+
+- exported images: 9;
+- image size: 1920x1080;
+- images were undistorted before export;
+- exported camera model: `PINHOLE`;
+- sparse seed points exported: 327;
+- validation result: pass;
+- validation checks:
+  - one camera record;
+  - nine image pose records;
+  - 327 point records;
+  - no missing/empty image files;
+  - quaternion norms exactly 1.0 within the exporter tolerance.
+
+Result: pass for a COLMAP-style handoff artifact. The export has the folder
+shape and text files expected by many COLMAP-based downstream tools:
+`images/` plus `sparse/0/`. The important caveat is that these poses come from
+lidar ICP and rough rig extrinsics, not from COLMAP bundle adjustment.
+
+Next action: try importing this export into a downstream viewer or Gaussian
+splatting pipeline. If the downstream tool rejects the text model or the
+`PINHOLE` undistorted images, add a second export mode with raw images and a
+`FULL_OPENCV` camera model.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
