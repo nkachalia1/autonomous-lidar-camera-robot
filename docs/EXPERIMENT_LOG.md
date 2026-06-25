@@ -641,6 +641,54 @@ map with a measured separation, or (2) wheel odometry/encoders. For a no-new-
 hardware test, place two or more opaque vertical reference boards at measured
 positions and verify whether their mapped locations preserve the known distance.
 
+### Reference-board Lidar Map Scale Check
+
+Session `20260625T214456Z` repeated the reconstruction-candidate motion test
+with two reference boards/box faces placed 24 inches apart as independent lidar
+landmarks. Desktop validation was clean:
+
+- camera: 443 frames over 29.461 seconds;
+- camera gap events above 1.5x nominal: 0;
+- lidar: 226 scans over 28.716 seconds;
+- lidar gap events above 1.5x nominal: 0;
+- oversized lidar scans above 1.5x median returns: 0;
+- lidar valid returns per scan min/median/max: 626/708/808;
+- shared monotonic-clock overlap: 28.716 seconds;
+- geometry valid for reconstruction: true.
+
+The ICP trajectory for this session estimated:
+
+- selected scans for ICP: 40;
+- ICP steps: 39;
+- rejected ICP steps: 0;
+- skipped oversized scans: 0;
+- estimated path length: 0.585 m;
+- estimated net displacement: 0.565 m;
+- estimated net rotation: 4.24 degrees.
+
+The automatic line-candidate detector labeled large walls/furniture rather than
+the small reference boards, so the manual measurement picker was used. The user
+picked the center of the two visible board return clusters:
+
+```text
+A: (-0.162, 0.280) m
+B: (-0.716, -0.003) m
+Measured distance: 0.621 m
+Delta vector: dx=-0.553 m, dy=-0.283 m
+Expected distance: 0.610 m
+Error: +0.012 m (+1.9%)
+```
+
+Result: pass for map scale. The measured board-to-board distance in the ICP map
+is within about 2 percent of the tape-measured 24-inch separation (`0.6096 m`).
+This strongly suggests that the reconstructed lidar map scale is basically
+metric, while the accumulated ICP path-length estimate can still be biased low.
+
+Next action: use reference landmarks as the scale/metric sanity check for room
+captures. Do not over-correct map scale from ICP path length alone. The next
+engineering improvement should either fuse wheel odometry with lidar ICP or
+derive a more robust trajectory quality metric from landmark consistency.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
