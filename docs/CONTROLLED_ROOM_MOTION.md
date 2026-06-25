@@ -106,6 +106,29 @@ python reconstruction\render_assumed_motion_lidar_map.py `
 Open the SVG first. If it looks plausible, the PLY can be opened in a point
 cloud viewer as a flat 2D point cloud.
 
+## Render ICP-estimated Lidar Map
+
+After the assumed-motion diagnostic, render a first-pass lidar odometry map.
+This estimates a 2D trajectory from scan-to-scan ICP during the marked motion
+window instead of assuming the rig moved perfectly straight.
+
+```powershell
+python reconstruction\render_icp_lidar_map.py `
+  "$HOME\Downloads\$session" `
+  --output "data\room-motion\$session-icp-map.svg" `
+  --png-output "data\room-motion\$session-icp-map.png" `
+  --ply-output "data\room-motion\$session-icp-map.ply" `
+  --trajectory-output "data\room-motion\$session-icp-trajectory.json" `
+  --motion-start-s 5 `
+  --motion-end-s 25 `
+  --lidar-angle-offset-deg 125
+```
+
+For the current 24-inch protocol, the physical travel target is 0.6096 m. A
+reasonable first ICP result should estimate a similar path length and only a
+small net rotation. It does not need to be exact: hand pushing, wheel slip,
+scene symmetry, and glass/window returns can all bias the estimate.
+
 ## Expected Failure Symptoms
 
 - The map looks like several rotated copies of the same wall: the rig turned.
@@ -115,3 +138,7 @@ cloud viewer as a flat 2D point cloud.
   different room direction.
 - Validation reports missing frame/scan intervals: repeat the capture before
   tuning geometry.
+- The ICP map path is nearly zero length: consecutive scans are too similar, the
+  motion window is wrong, or scan matching is stuck in a local minimum.
+- The ICP map path rotates sharply or curls back on itself: the rig turned,
+  the scene is ambiguous, or the ICP correspondence thresholds are too loose.

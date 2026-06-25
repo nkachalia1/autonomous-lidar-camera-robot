@@ -493,6 +493,61 @@ scans themselves, starting with 2D scan-to-scan matching/ICP or adding a simple
 wheel-odometry/encoder measurement. Until that exists, additional hand-pushed
 captures will mostly test operator discipline rather than improve the map.
 
+### First ICP Lidar Odometry Map
+
+A first workstation-side scan-matching renderer,
+`reconstruction/render_icp_lidar_map.py`, was added and run against the guided
+24-inch motion session `20260624T002731Z`.
+
+Hypothesis: scan-to-scan ICP should estimate a rough 2D trajectory from the
+lidar data and reduce the fan-shaped smearing produced by the assumed-straight
+trajectory renderer.
+
+Command summary:
+
+```powershell
+python reconstruction\render_icp_lidar_map.py `
+  "$HOME\Downloads\20260624T002731Z" `
+  --output "data\room-motion\20260624T002731Z-icp-map.svg" `
+  --png-output "data\room-motion\20260624T002731Z-icp-map.png" `
+  --ply-output "data\room-motion\20260624T002731Z-icp-map.ply" `
+  --trajectory-output "data\room-motion\20260624T002731Z-icp-trajectory.json" `
+  --motion-start-s 5 `
+  --motion-end-s 25 `
+  --lidar-angle-offset-deg 125
+```
+
+Measurements:
+
+- input scans: 227;
+- selected scans for ICP: 40;
+- ICP steps: 39;
+- rejected ICP steps: 0;
+- estimated path length: 0.553 m;
+- estimated net displacement: 0.541 m;
+- estimated net rotation: -1.72 degrees;
+- map output points: 77,958.
+
+A stride sweep produced stable path-length estimates from 0.538 m to 0.561 m
+for match strides 2, 3, 4, 5, 6, and 8. The physical target path was 24 inches
+(0.6096 m), so the first ICP estimate is about 8 to 12 percent short depending
+on stride. This may be caused by actual motion timing, wheel slip, scene
+ambiguity, or ICP bias.
+
+Visual result: the ICP-estimated map is materially less smeared than the
+assumed-straight map. The old map fans into repeated colored wedges near the
+rig, while the ICP result collapses much of that into thinner structures and
+estimates a slight arc, which is plausible for a hand-pushed robot chassis.
+
+Result: pass for a first scan-matching reconstruction slice. This is still not
+full SLAM: there is no loop closure, occupancy grid, global map optimization, or
+camera fusion yet.
+
+Next action: use the ICP trajectory as the lidar-side baseline for future room
+captures, then add either stronger scan-matching validation metrics or simple
+wheel odometry so the trajectory can be checked against an independent motion
+measurement.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
