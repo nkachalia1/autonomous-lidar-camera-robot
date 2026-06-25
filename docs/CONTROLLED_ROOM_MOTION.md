@@ -135,6 +135,53 @@ warning threshold and prevents one merged/oversized scan from influencing the
 trajectory. Use `--max-valid-points-ratio 0` only when intentionally debugging
 raw scan anomalies.
 
+## Reference-board Scale Check
+
+Use this after an ICP map when the trajectory estimate is repeatable but short
+of the physical 24-inch travel distance.
+
+Physical setup:
+
+1. Keep the 24-inch start/end travel marks.
+2. Put two flat opaque vertical reference boards or cardboard box faces on one
+   side of the travel path.
+3. Align board A with the start mark and board B with the end mark, so the
+   measured separation between their front faces is also 24 inches
+   (`0.6096 m`).
+4. Keep both boards tall enough to intersect the lidar scan plane and wide
+   enough to make clear line segments in the top-down lidar map.
+5. Keep the boards out of the robot path so the rig does not bump or drag.
+
+After capture, validation, and ICP rendering, label straight line candidates:
+
+```powershell
+python reconstruction\detect_lidar_landmarks.py `
+  "$HOME\Downloads\$session" `
+  --trajectory "data\room-motion\$session-icp-trajectory.json" `
+  --output "data\room-motion\$session-landmark-candidates.svg" `
+  --json-output "data\room-motion\$session-landmark-candidates.json" `
+  --lidar-angle-offset-deg 125
+```
+
+Open the labeled SVG and identify the two candidate IDs that correspond to the
+reference boards. Then measure their mapped center distance:
+
+```powershell
+python reconstruction\detect_lidar_landmarks.py `
+  "$HOME\Downloads\$session" `
+  --trajectory "data\room-motion\$session-icp-trajectory.json" `
+  --output "data\room-motion\$session-landmark-candidates.svg" `
+  --json-output "data\room-motion\$session-landmark-candidates.json" `
+  --lidar-angle-offset-deg 125 `
+  --measure-ids A,B `
+  --expected-distance-m 0.6096
+```
+
+Replace `A,B` with the two numbered candidate IDs from the SVG. If the measured
+distance is close to `0.6096 m` but the ICP path is short, the map scale is
+reasonable and the path-length estimate is biased. If the measured board
+distance is also short, the reconstruction is compressing metric scale.
+
 ## Expected Failure Symptoms
 
 - The map looks like several rotated copies of the same wall: the rig turned.
@@ -148,3 +195,5 @@ raw scan anomalies.
   motion window is wrong, or scan matching is stuck in a local minimum.
 - The ICP map path rotates sharply or curls back on itself: the rig turned,
   the scene is ambiguous, or the ICP correspondence thresholds are too loose.
+- The landmark detector labels walls/furniture instead of the reference boards:
+  move the boards closer, make them wider, or temporarily remove nearby clutter.
