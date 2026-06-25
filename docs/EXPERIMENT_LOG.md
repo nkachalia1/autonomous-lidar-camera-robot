@@ -892,6 +892,66 @@ procedure for room captures. The next reconstruction step should use these
 camera poses to back-project sparse tracked image features into a lidar-assisted
 2.5D/3D diagnostic view, while keeping the lidar map as the metric anchor.
 
+### Sparse Lidar-anchored Camera Feature Diagnostic
+
+The steady-window camera poses from `20260625T214456Z` were used to triangulate
+sparse camera feature matches into the lidar ICP map frame. This is the first
+visual geometry artifact that combines camera image features, calibrated camera
+intrinsics, rough camera-to-lidar rig measurements, and the metric lidar
+trajectory. It is intentionally treated as a diagnostic sparse point cloud, not
+as a final calibrated 3D reconstruction.
+
+Command run on the Windows workstation:
+
+```text
+python reconstruction\render_sparse_fused_feature_map.py `
+  "$HOME\Downloads\20260625T214456Z" `
+  --pose-json "data\fusion\20260625T214456Z-camera-poses-motion-steady.json" `
+  --intrinsics "config\camera_intrinsics_pi_camera_v2_1920x1080.yaml" `
+  --output "data\fusion\20260625T214456Z-sparse-fused-feature-map.svg" `
+  --json-output "data\fusion\20260625T214456Z-sparse-fused-feature-map.json" `
+  --ply-output "data\fusion\20260625T214456Z-sparse-fused-feature-map.ply"
+```
+
+Outputs:
+
+- `data/fusion/20260625T214456Z-sparse-fused-feature-map.svg`;
+- `data/fusion/20260625T214456Z-sparse-fused-feature-map.json`;
+- `data/fusion/20260625T214456Z-sparse-fused-feature-map.ply`.
+
+Measurements:
+
+- accepted sparse 3D points: 327;
+- frame pairs with accepted points: 6 of 8;
+- total ORB matches across pairs: 2,729;
+- total pose inliers across pairs: 885;
+- median reprojection error: 3.48 px;
+- 95th-percentile reprojection error: 5.46 px;
+- median triangulation angle: 1.56 degrees;
+- median point range from camera: 1.07 m;
+- point extents in the lidar ICP map frame:
+  - x: +0.07 to +4.57 m;
+  - y: -1.46 to +0.05 m;
+  - z: +0.01 to +0.61 m above the lidar scan plane.
+
+A zero-roll/zero-pitch comparison produced fewer accepted points (294) and a
+higher median reprojection error (3.84 px), so the current rough rig config
+(`camera_roll_deg=-2`, `camera_pitch_deg=-1`, `camera_height_m=0.0953`) was kept
+for the main diagnostic output. Pair 8 was rejected because essential-matrix
+pose recovery produced only 13 pose inliers. Pair 3 had enough pose inliers but
+all triangulated points failed the metric/depth/reprojection filters.
+
+Result: pass for a first sparse fused-geometry diagnostic, with important
+limitations. The output demonstrates that tracked camera features can be
+triangulated into a lidar-anchored metric frame for the steady-motion segment.
+However, the point heights and positions still depend on rough extrinsics, so
+this must not be treated as an accurate room model yet.
+
+Next action: improve the extrinsic calibration target and repeat this diagnostic
+on a scene with more deliberate visual landmarks at known heights/depths. Use
+the PLY/SVG point cloud to check whether those landmarks appear in the expected
+relative locations before attempting denser reconstruction.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
