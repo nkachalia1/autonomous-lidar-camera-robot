@@ -595,6 +595,52 @@ check next: either manually measured start/end pose markers in the map, a
 wheel-encoder/odometry sensor, or a constrained straight-track capture where
 the rig cannot yaw.
 
+### Constrained 24-inch ICP Run
+
+Session `20260625T212639Z` repeated the 24-inch reconstruction-candidate motion
+test with the rig physically constrained to reduce yaw. Desktop validation was
+clean:
+
+- camera: 443 frames over 29.461 seconds;
+- camera gap events above 1.5x nominal: 0;
+- lidar: 225 scans over 28.730 seconds;
+- lidar gap events above 1.5x nominal: 0;
+- oversized lidar scans above 1.5x median returns: 0;
+- lidar valid returns per scan min/median/max: 686/720/794;
+- shared monotonic-clock overlap: 28.694 seconds;
+- geometry valid for reconstruction: true.
+
+The default ICP render over the 5 to 25 second motion window estimated:
+
+- selected scans for ICP: 40;
+- ICP steps: 39;
+- rejected ICP steps: 0;
+- skipped oversized scans: 0;
+- estimated path length: 0.469 m;
+- estimated net displacement: 0.442 m;
+- estimated net rotation: 3.67 degrees;
+- map output points: 72,565.
+
+An ICP timing-window sweep showed that using the whole capture increased the
+estimate only to 0.525 m. Therefore the 5 to 25 second window is not the main
+cause of the short trajectory estimate. The constrained run still undershot the
+24-inch physical target of 0.6096 m.
+
+Visual result: the ICP map remains less fan-shaped than the assumed-straight
+map, but the central bands are still visibly smeared. The constrained setup did
+not produce a more accurate metric path than the previous guided push.
+
+Result: mixed. Pass for clean sensor capture and for confirming ICP remains
+better than the assumed-straight renderer. Fail for the hypothesis that a
+simple physical yaw constraint would move the ICP path estimate closer to the
+24-inch ground truth.
+
+Next action: add an independent motion measurement instead of relying on ICP
+alone. The two smallest options are (1) visible start/end landmarks in the lidar
+map with a measured separation, or (2) wheel odometry/encoders. For a no-new-
+hardware test, place two or more opaque vertical reference boards at measured
+positions and verify whether their mapped locations preserve the known distance.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
