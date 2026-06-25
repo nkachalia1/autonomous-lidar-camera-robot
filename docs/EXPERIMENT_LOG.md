@@ -528,6 +528,41 @@ box face, perpendicular enough to the lidar/camera view, with one continuous
 horizontal tape stripe at measured lidar scan height and vertical strips crossing
 that stripe. Re-capture once that single-plane target is set up.
 
+### Single-plane Cardboard Target Follow-up
+
+Session `20260625T202308Z` was captured after setting up a larger single-plane
+cardboard-box target with a horizontal tape stripe. Desktop validation passed
+with one lidar timing anomaly:
+
+- camera: 443 frames over 29.461 seconds;
+- camera gap events above 1.5x nominal: 0;
+- lidar: 222 scans over 28.736 seconds;
+- lidar gap events above 1.5x nominal: 1;
+- oversized lidar scans above 1.5x median returns: 1;
+- lidar valid returns per scan min/median/max: 796/806/1620;
+- shared monotonic-clock overlap: 28.732 seconds.
+
+The first full close-box angle sweep suggested that `lidar_angle_offset_deg=143`
+placed the most pink, near-range returns on the cardboard target, but the returns
+were visibly curved rather than a single straight row and sat slightly above the
+tape stripe. Follow-up overlays isolated an approximate cardboard-front inlier
+segment from raw lidar angles 190 to 240 degrees and distance 0.35 to 1.0 meters.
+The user reported that `camera_up_m` between 0.100 and 0.105 meters was best, and
+that `roll=+6 deg` was the best tested roll. This candidate crosses the middle
+and right tape markers, but stops short of the left marker. The visible points
+still form a curve instead of one straight line.
+
+Result: partial calibration candidate only. The current best visual candidate is
+approximately `lidar_angle_offset_deg=143`, `camera_up_m=0.1025`,
+`pitch=+8 deg`, and `roll=+6 deg`, using the calibrated Pi Camera v2
+intrinsics. Do not promote these values to the main rig configuration yet because
+the target does not provide a full-width single-plane constraint.
+
+Next action: either accept this as a temporary middle/right alignment for
+non-textured lidar experiments, or rebuild the calibration target as a larger,
+uninterrupted, flat opaque board at lidar height so the same physical surface
+produces returns across the left, middle, and right markers.
+
 ## 2026-06-22 Initial Sensor Detection
 
 ### Hypothesis
