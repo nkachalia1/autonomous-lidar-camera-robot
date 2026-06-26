@@ -2249,6 +2249,54 @@ camera view, reduce shiny/blank regions, make the arc even slower and smoother,
 and avoid any wheel slip, cable tug, or steering correction during the moving
 window.
 
+### Manual-push Capture `20260626T220148Z`
+
+Session `20260626T220148Z` was captured as one final manual-push attempt before
+switching attention toward motorized motion. The raw session validated cleanly:
+
+- mode: `reconstruction_candidate`;
+- camera: 1,343 frames over 89.450 seconds;
+- camera gap events above 1.5x nominal: 0;
+- lidar: 690 scans over 88.652 seconds;
+- lidar gap events above 1.5x nominal: 0;
+- oversized lidar scans: 0;
+- shared monotonic-clock overlap: 88.652 seconds;
+- geometry valid for reconstruction: true.
+
+The lidar ICP reconstruction was also mechanically plausible:
+
+- input scans: 690;
+- selected scans for ICP: 147;
+- ICP steps/rejected steps: 146/0;
+- skipped oversized scans: 0;
+- estimated path length: 0.568 m;
+- estimated net displacement: 0.522 m;
+- estimated net rotation: 6.46 degrees;
+- map output points: 261,085.
+
+The 72-view camera/lidar motion diagnostic failed:
+
+- successful visual-motion pairs: 15 of 71;
+- median pose inliers: 465;
+- moving alignment RMSE: 0.053 m;
+- median direction error: 50.7 degrees;
+- camera candidate: `z_forward_x_left`.
+
+A rolling-window inspection of the successful pair summaries found no
+salvageable segment. The best 24-pair window still had median direction error
+about 48.6 degrees, and shorter useful windows remained far above the current
+best smooth-arc result.
+
+Result: fail for GraphDECO packaging. This is another example where the sensors
+recorded cleanly and the lidar ICP map looked plausible, but the manually pushed
+camera motion was not consistent enough with the lidar trajectory for a reliable
+3DGS export.
+
+Next action: stop spending Colab time on manual-push repeats. The next
+engineering milestone should be controlled motorized motion with the TB6612, or
+an equivalent physical guide/track, so captures become repeatable and do not
+depend on hand-push smoothness.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
