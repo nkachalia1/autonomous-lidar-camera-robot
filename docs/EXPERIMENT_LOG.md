@@ -1358,6 +1358,25 @@ Next action: either inspect the iteration-300 `point_cloud.ply` visually as a
 sanity check, or collect a more splatting-friendly dataset with more views,
 texture, and stronger camera poses before trying longer training.
 
+### Next 3DGS Capture Plan
+
+A follow-up runbook was added for a better Gaussian-splatting dataset:
+
+- `docs/NEXT_3DGS_CAPTURE.md`.
+
+The next experiment should use a 75-second `reconstruction_candidate` capture
+with a deliberately textured scene, slow 18 to 24 inch motion, and 30 sampled
+camera poses from the moving window. The first success target remains a
+300-iteration GraphDECO Colab T4 smoke pass, but the expected quality should be
+better than the 9-view diagnostic dataset.
+
+The GraphDECO Colab notebooks were also relaxed to accept either binary or text
+COLMAP sparse model files. This matches GraphDECO's fallback behavior and avoids
+requiring a WSL COLMAP conversion before every new dataset package.
+
+Next action: perform the new capture using the runbook, validate the session,
+export `SESSION_ID-30-undistorted`, package it, and rerun the Colab smoke test.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
