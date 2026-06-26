@@ -1978,6 +1978,42 @@ Next action: inspect camera/lidar motion diagnostics for the 60-view sequence
 and either narrow the export to the best monotonic segment, or add a visual pose
 refinement path before the next Colab run.
 
+### Room MVP Capture `20260626T030750Z` Camera/Lidar Motion Diagnostic
+
+The missing camera-vs-lidar motion diagnostic was run for the 60-stable pose
+set:
+
+```text
+data/fusion/20260626T030750Z-camera-lidar-motion-60stable.svg
+data/fusion/20260626T030750Z-camera-lidar-motion-60stable.json
+```
+
+Summary:
+
+- successful visual-motion pairs: 34 of 59;
+- median pose inliers: 138;
+- moving alignment RMSE: 0.063 m;
+- median direction error: 43.9 degrees;
+- max direction error: 167.7 degrees;
+- lidar sample path length: 0.841 m;
+- aligned camera sample path length: 1.279 m;
+- camera candidate: `z_forward_x_right`.
+
+Per-pair inspection showed scattered good pairs but no long clean contiguous
+window. Several adjacent frame pairs disagreed by 80 to 170 degrees even when
+the visual matcher found many inliers. This supports the held-out 3DGS result:
+the model is not merely undertrained; the exported camera poses are inconsistent
+with image motion through enough of the curved path to cause ghosting.
+
+Result: fail for the 60-stable pose sequence. Do not keep training this package
+as-is. The next software-only check should try coarser sampling from the same
+raw capture to reduce tiny-baseline direction noise and avoid over-representing
+unstable curved sections.
+
+Next action: generate a 36-view coarse pose set from roughly 10 to 72 seconds,
+run `compare_camera_lidar_motion.py` with `--min-lidar-step-m 0.01`, and only
+package/retrain if the diagnostic improves substantially.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
