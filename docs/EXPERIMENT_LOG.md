@@ -1800,6 +1800,66 @@ Next action: upload
 to Colab, train with `--eval` at 7,000 iterations, render train/test views, and
 compare held-out metrics against the 30-view eval baseline.
 
+### 48-view Stable-window GraphDECO Held-out Validation
+
+The 48-stable package was uploaded to Colab and trained with GraphDECO `--eval`
+for 7,000 iterations at `--resolution 4`. The downloaded bundles were copied
+into the ignored project data directory as:
+
+```text
+data/exports/gaussian-splatting/20260626T010718Z-48stable-undistorted-graphdeco-eval-iter7000.zip
+data/exports/gaussian-splatting/20260626T010718Z-48stable-undistorted-graphdeco-eval-iter7000-render-views.zip
+```
+
+The eval render bundle contained 42 train views and 6 held-out test views.
+
+Train-view comparison:
+
+- frame count: 42;
+- mean/median MAE: `4.537/3.960` image gray levels;
+- mean/median PSNR: `30.576/30.227 dB`;
+- best frame: `00038.png`, PSNR `42.323 dB`, MAE `1.223`;
+- worst frame: `00005.png`, PSNR `21.532 dB`, MAE `11.159`.
+
+Held-out test-view comparison:
+
+- frame count: 6;
+- mean/median MAE: `19.173/19.214` image gray levels;
+- mean/median PSNR: `17.125/16.887 dB`;
+- best frame: `00004.png`, PSNR `20.025 dB`, MAE `12.570`;
+- worst frame: `00000.png`, PSNR `15.244 dB`, MAE `25.579`.
+
+Compared with the 30-view eval baseline:
+
+- train median MAE improved from `6.405` to `3.960`;
+- train median PSNR improved from `23.075 dB` to `30.227 dB`;
+- held-out median MAE improved from `25.102` to `19.214`;
+- held-out median PSNR improved from `15.062 dB` to `16.887 dB`.
+
+The 48-stable model point cloud was stable and compact:
+
+- vertices: 195,146;
+- full bounds: `x=-0.417..+2.358 m`, `y=-1.259..+0.354 m`,
+  `z=-0.277..+0.665 m`;
+- filtered core vertices: 23,710 of 195,146;
+- filtered core bounds: `x=-0.398..+0.850 m`, `y=-0.369..+0.052 m`,
+  `z=+0.010..+0.140 m`.
+
+Visual result: the 48-stable train views are much cleaner than the 30-view eval
+run. Held-out views are visibly improved, but still show ghosting and soft/warped
+objects. The model is learning the scene and the denser stable window helped,
+but it still does not generalize cleanly enough for a robust room MVP.
+
+Result: partial pass. Software-side resampling improved the model, but the
+remaining limitation is capture geometry and pose quality. More training alone
+is unlikely to fix the held-out failure; the next high-value step is a new
+capture with better parallax and more even view coverage.
+
+Next action: collect a new reconstruction candidate capture with a deliberate
+sideways arc or two-lane pass around the target area, keeping objects visible
+throughout the motion and avoiding a stationary tail. Export 48 to 72 stable
+views and repeat the `--eval` held-out validation.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
