@@ -60,6 +60,17 @@ The export was also packaged for a GPU-notebook smoke test:
 - runbook:
   `docs/GRAPHDECO_GPU_SMOKE_TEST.md`.
 
+The first Colab T4 GraphDECO smoke test passed. The output archive is:
+
+```text
+data/exports/gaussian-splatting/20260625T214456Z-steady-undistorted-graphdeco-smoke.zip
+```
+
+It contains `point_cloud/iteration_300/point_cloud.ply`, `cameras.json`,
+`input.ply`, and a TensorBoard event file. Local inspection counted 9 cameras,
+327 input vertices, and 327 vertices in the iteration-300 output point cloud.
+This proves loader/training compatibility, not reconstruction quality.
+
 After resolving the Windows Start Menu shortcut, COLMAP was also found inside
 the `Ubuntu-22.04` WSL distro:
 

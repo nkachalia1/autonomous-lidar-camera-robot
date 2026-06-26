@@ -1318,6 +1318,46 @@ Next action: run the dataset validation cell, then the training cell. Success is
 defined as `train.py` reaching iteration 300 and writing the output model
 directory.
 
+### Colab T4 GraphDECO 300-iteration Smoke Test Passed
+
+The user ran the remaining Colab cells after the CUDA extension build succeeded.
+Cell 6 downloaded the GraphDECO output archive. The downloaded archive was found
+locally at:
+
+```text
+C:\Users\Neel\Downloads\20260625T214456Z-steady-undistorted-graphdeco-smoke.zip
+```
+
+It was copied into the ignored project data directory:
+
+```text
+data/exports/gaussian-splatting/20260625T214456Z-steady-undistorted-graphdeco-smoke.zip
+```
+
+Local ZIP inspection found:
+
+- files in archive: 8;
+- `cameras.json`: present;
+- camera count: 9;
+- `input.ply`: present;
+- `input.ply` vertices: 327;
+- `point_cloud/iteration_300/point_cloud.ply`: present;
+- iteration-300 point-cloud vertices: 327;
+- TensorBoard event file: present.
+
+Result: pass for the first end-to-end GraphDECO Gaussian Splatting smoke test.
+The official trainer accepted the exported COLMAP-style dataset, ran to
+iteration 300 on a Colab T4 GPU, and produced a model output archive.
+
+Caveat: this pass proves compatibility of the handoff path, not reconstruction
+quality. The output still has 327 points at iteration 300, matching the sparse
+input seed count, so this tiny 9-view diagnostic dataset should not be judged as
+a useful room model.
+
+Next action: either inspect the iteration-300 `point_cloud.ply` visually as a
+sanity check, or collect a more splatting-friendly dataset with more views,
+texture, and stronger camera poses before trying longer training.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
