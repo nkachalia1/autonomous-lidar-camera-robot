@@ -29,6 +29,20 @@ The local parser/previewer passed:
 - recovered camera path length: 0.475 m;
 - quaternion norms: unit length within numerical tolerance.
 
+The local GraphDECO input-readiness checker also passed:
+
+- command:
+  `python reconstruction/check_graphdeco_input.py data/exports/colmap/20260625T214456Z-steady-undistorted --json-output data/exports/colmap/20260625T214456Z-steady-undistorted/graphdeco_input_check.json`;
+- output report:
+  `data/exports/colmap/20260625T214456Z-steady-undistorted/graphdeco_input_check.json`;
+- generated point cloud:
+  `data/exports/colmap/20260625T214456Z-steady-undistorted/sparse/0/points3D.ply`;
+- readiness: pass;
+- `points3D.ply` vertices: 327;
+- missing image references: 0;
+- camera model: `PINHOLE`;
+- caveat: `points3D.txt` still has zero COLMAP feature-track references.
+
 After resolving the Windows Start Menu shortcut, COLMAP was also found inside
 the `Ubuntu-22.04` WSL distro:
 
@@ -165,8 +179,10 @@ track export later.
 
 ## First GraphDECO training smoke command
 
-After cloning and setting up the official GraphDECO environment, try a very
-small smoke run before any serious training:
+No existing GraphDECO install was found in the likely Windows/WSL locations, and
+`nvidia-smi` was not visible from Windows PowerShell or the `Ubuntu-22.04` WSL
+distro. After cloning and setting up the official GraphDECO environment, try a
+very small smoke run before any serious training:
 
 ```powershell
 $DATA = "C:\Users\Neel\Documents\Fuse Lidar and Camera\data\exports\colmap\20260625T214456Z-steady-undistorted"

@@ -1110,6 +1110,58 @@ in a separate environment. Expect the first useful outcome to be either "loader
 accepts the dataset and starts optimization" or a concrete loader error that
 defines the next adapter change.
 
+### GraphDECO Loader-readiness Smoke Test
+
+A local GraphDECO input checker was added for the current COLMAP-style export.
+This is not Gaussian-splat training. It validates the folder shape and camera
+model assumptions used by the official GraphDECO loader and writes
+`sparse/0/points3D.ply` from `points3D.txt` with the vertex fields GraphDECO
+expects on first load.
+
+Command:
+
+```text
+python reconstruction/check_graphdeco_input.py \
+  data/exports/colmap/20260625T214456Z-steady-undistorted \
+  --json-output data/exports/colmap/20260625T214456Z-steady-undistorted/graphdeco_input_check.json
+```
+
+Artifacts:
+
+- `reconstruction/check_graphdeco_input.py`;
+- `data/exports/colmap/20260625T214456Z-steady-undistorted/graphdeco_input_check.json`;
+- `data/exports/colmap/20260625T214456Z-steady-undistorted/sparse/0/points3D.ply`.
+
+Measurements:
+
+- GraphDECO input readiness: pass;
+- camera model: `PINHOLE`;
+- cameras: 1;
+- image references: 9;
+- missing images: 0;
+- sparse seed points: 327;
+- `points3D.ply` vertices in header/rows: 327/327;
+- `points3D.ply` fields: `x`, `y`, `z`, `nx`, `ny`, `nz`, `red`, `green`,
+  `blue`;
+- COLMAP feature-track references: 0.
+
+Result: pass for a local GraphDECO loader-readiness smoke test. The current
+export has the expected `images/`, `sparse/0`, `PINHOLE` intrinsics, binary
+COLMAP files, text COLMAP files, and GraphDECO-compatible `points3D.ply`.
+Training was not run because no existing GraphDECO install was found in the
+likely Windows/WSL locations and CUDA was not visible through `nvidia-smi` on
+Windows or WSL.
+
+Caveat: zero COLMAP feature-track references remains the main quality risk. The
+artifact is ready for a loader/training smoke test in a GraphDECO environment,
+but a useful splat will probably need more views and/or true visual feature
+tracks.
+
+Next action: set up or locate a GraphDECO Gaussian Splatting environment, then
+run the smallest training command against this export. If training starts, judge
+only loader compatibility first; visual quality is a separate capture and pose
+quality problem.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
