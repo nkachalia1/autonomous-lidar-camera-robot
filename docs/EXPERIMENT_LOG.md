@@ -1288,6 +1288,36 @@ Next action: rerun the patched install cell in Colab from
 `/content/gaussian-splatting`, then rerun the 300-iteration training cell. If it
 still fails, preserve the verbose build output from the first failing extension.
 
+### Colab T4 GraphDECO CUDA Extension Build Passed
+
+The user reran the patched Colab install cell on a T4 runtime. CUDA and PyTorch
+were visible:
+
+```text
+torch 2.11.0+cu128
+torch cuda 12.8
+cuda available True
+device Tesla T4
+nvcc release 12.8, V12.8.93
+```
+
+The GraphDECO CUDA submodules built and installed:
+
+- `diff_gaussian_rasterization-0.0.0`;
+- `simple_knn-0.0.0`;
+- `fused_ssim-0.0.0`.
+
+The remaining pip resolver message about `ipython`/`jedi` is treated as
+non-blocking because the CUDA extension builds completed successfully.
+
+Result: pass for GraphDECO environment setup on Colab T4. This still has not
+tested the Fuse dataset or training loop; the next cells should unpack/validate
+the uploaded dataset ZIP and run the 300-iteration training smoke test.
+
+Next action: run the dataset validation cell, then the training cell. Success is
+defined as `train.py` reaching iteration 300 and writing the output model
+directory.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
