@@ -2131,6 +2131,67 @@ Next action: run GraphDECO `--eval` at 7,000 iterations on the valid package, or
 first try a software-only moving-window re-export that removes the low-motion
 tail.
 
+### Smooth-arc 60-view GraphDECO Held-out Validation
+
+The smooth-arc `20260626T041136Z` 60-stable package was uploaded to Colab and
+trained with GraphDECO `--eval` for 7,000 iterations at `--resolution 4`. The
+downloaded bundles were copied into the ignored project data directory as:
+
+```text
+data/exports/gaussian-splatting/20260626T041136Z-60stable-undistorted-graphdeco-eval-iter7000.zip
+data/exports/gaussian-splatting/20260626T041136Z-60stable-undistorted-graphdeco-eval-iter7000-render-views.zip
+```
+
+The eval render bundle contained 52 train views and 8 held-out test views.
+
+Train-view comparison:
+
+- frame count: 52;
+- mean/median MAE: `4.045/3.446` image gray levels;
+- mean/median PSNR: `29.905/29.596 dB`.
+
+Held-out test-view comparison:
+
+- frame count: 8;
+- mean/median MAE: `12.166/10.692` image gray levels;
+- mean/median PSNR: `20.831/20.399 dB`;
+- best held-out frame: `00007.png`, PSNR `28.999 dB`, MAE `2.625`;
+- worst held-out frame: `00000.png`, PSNR `15.302 dB`, MAE `22.615`.
+
+Compared with the previous snake-like `20260626T030750Z` 60-view eval run:
+
+- train median MAE improved from `5.543` to `3.446`;
+- train median PSNR improved from `26.959 dB` to `29.596 dB`;
+- held-out median MAE improved from `19.890` to `10.692`;
+- held-out median PSNR improved from `16.905 dB` to `20.399 dB`.
+
+Compared with the earlier 48-stable re-export:
+
+- held-out median MAE improved from `19.214` to `10.692`;
+- held-out median PSNR improved from `16.887 dB` to `20.399 dB`.
+
+The iteration-7000 GraphDECO point cloud remained compact:
+
+- vertices: 96,246;
+- bounds: `x=-0.348..+2.562 m`, `y=-0.989..+0.319 m`,
+  `z=-0.217..+0.509 m`;
+- opacity min/median/max: `0.120/0.120/0.950`.
+
+Visual result: this is the first run with a meaningful held-out improvement.
+The render contact sheet still shows blur, edge ghosting, and shape errors on
+hard objects, but the model generalizes substantially better than both the
+48-stable software re-export and the snake-like 60-view capture.
+
+Result: pass for the current room-MVP validation gate. The smooth single-arc
+capture produced the best held-out view synthesis so far. Remaining quality
+limits are likely sparse-feature weakness and low triangulation angle, not a
+GraphDECO training/runtime issue.
+
+Next action: refine the same successful capture pattern instead of changing the
+algorithm: use one smooth shallow arc, add more textured/structured objects at
+the lidar/camera working distance, avoid stationary tail frames, and export a
+72-view moving-window package for a repeat validation run.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
