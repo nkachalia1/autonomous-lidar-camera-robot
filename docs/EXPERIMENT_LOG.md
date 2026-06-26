@@ -1377,6 +1377,148 @@ requiring a WSL COLMAP conversion before every new dataset package.
 Next action: perform the new capture using the runbook, validate the session,
 export `SESSION_ID-30-undistorted`, package it, and rerun the Colab smoke test.
 
+### 30-view 3DGS Candidate Capture and Export
+
+Session `20260626T010718Z` was captured with the 75-second reconstruction
+candidate protocol and copied to the Windows workstation. Validation reported:
+
+- camera frames: 1118 over 74.456 seconds;
+- camera gap events above 1.5x nominal: 0;
+- lidar scans: 563 over 73.695 seconds;
+- lidar gap events above 1.5x nominal: 1;
+- oversized lidar scans: 1;
+- shared monotonic-clock overlap: 73.257 seconds;
+- geometry valid for reconstruction: true.
+
+The one lidar issue was localized to scan 333:
+
+```text
+gap after scan 333: 262.245 ms
+scan 333: 1473 returns
+```
+
+ICP was run over the 5 to 70 second motion window. It skipped the oversized scan
+and produced:
+
+- selected scans for ICP: 125;
+- ICP steps: 124;
+- rejected ICP steps: 0;
+- skipped oversized scans: 1;
+- estimated path length: 0.684 m;
+- estimated net displacement: 0.610 m;
+- estimated net rotation: 0.60 degrees;
+- map output points: 186,936.
+
+Thirty camera poses were sampled from 5 to 70 seconds. The last several samples
+were nearly stationary near the end of the move, but the overall visual-motion
+diagnostic was strong:
+
+- successful visual-motion pairs: 23/29;
+- median pose inliers: 246;
+- moving alignment RMSE: 0.031 m;
+- median direction error: 12.1 degrees;
+- selected camera candidate: `z_forward_x_right`.
+
+Sparse fused feature map:
+
+- accepted sparse 3D points: 1221;
+- pairs with accepted points: 8/29;
+- median reprojection error: 2.96 px;
+- median triangulation angle: 1.51 degrees;
+- point extents: x -0.17..+4.08 m, y -1.73..-0.05 m, z -0.15..+0.50 m.
+
+COLMAP-style export:
+
+```text
+data/exports/colmap/20260626T010718Z-30-undistorted
+```
+
+Export measurements:
+
+- images: 30 at 1920x1080;
+- camera model: `PINHOLE`;
+- sparse points: 1221;
+- export validation: pass;
+- preview validation: pass;
+- camera path length from exported poses: 0.643 m;
+- missing images: 0.
+
+GraphDECO package:
+
+```text
+data/exports/gaussian-splatting/20260626T010718Z-30-undistorted-graphdeco.zip
+```
+
+Package measurements:
+
+- files: 38;
+- package size: 6,945,487 bytes;
+- image references: 30;
+- missing images: 0;
+- sparse points: 1221;
+- COLMAP track references: 0.
+
+Result: pass for capture, lidar ICP, camera pose sampling, visual-motion
+diagnostic, sparse feature map, COLMAP-style export, and GraphDECO input
+packaging. This is a materially better splatting candidate than the first
+9-view diagnostic dataset.
+
+Caveats: the dataset still has zero COLMAP feature-track references, and the
+last several camera samples are nearly stationary. If the Colab output remains
+weak, resample the moving window earlier, for example 5 to 54 seconds, or
+capture with steadier non-stop motion.
+
+Next action: upload
+`data/exports/gaussian-splatting/20260626T010718Z-30-undistorted-graphdeco.zip`
+to the Colab T4 notebook and run the 300-iteration smoke test.
+
+### 30-view GraphDECO Colab Smoke Test Passed
+
+The 30-view candidate package was uploaded to the Colab T4 notebook and trained
+for 300 iterations. Cell 6 downloaded:
+
+```text
+C:\Users\Neel\Downloads\20260626T010718Z-30-undistorted-graphdeco (2)-smoke.zip
+```
+
+The archive was copied into the ignored project data directory as:
+
+```text
+data/exports/gaussian-splatting/20260626T010718Z-30-undistorted-graphdeco-smoke.zip
+```
+
+Local ZIP inspection found:
+
+- `cameras.json`: present;
+- camera count: 30;
+- `input.ply`: present;
+- input vertices: 1221;
+- `point_cloud/iteration_300/point_cloud.ply`: present;
+- iteration-300 vertices: 1221;
+- iteration-300 PLY size: 304,337 bytes;
+- TensorBoard event file: present.
+
+Compared with the first 9-view smoke test:
+
+- cameras: 9 -> 30;
+- input vertices: 327 -> 1221;
+- iteration-300 vertices: 327 -> 1221;
+- iteration-300 PLY size: 82,624 -> 304,337 bytes.
+
+Result: pass for the improved 30-view GraphDECO smoke test. The export/training
+path is repeatable, and the candidate dataset is materially richer than the
+first diagnostic dataset.
+
+Caveat: 300 iterations is still a compatibility/early-output test. The point
+count remaining equal to the input seed count is expected this early and does
+not by itself indicate visual quality. The next decision should be based on a
+visual inspection of the output point cloud or a longer training run.
+
+Next action: extract and inspect
+`point_cloud/iteration_300/point_cloud.ply`; if the orientation and gross
+structure are plausible, run a longer Colab training test, for example 3,000
+iterations, on the same packaged dataset.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
