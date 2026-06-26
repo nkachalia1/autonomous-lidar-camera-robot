@@ -1,15 +1,16 @@
 # Next Room MVP Capture
 
-This is the next hardware experiment after the 48-view stable-window
-GraphDECO eval run. The pipeline can now train recognizable 3DGS models from
-lidar-anchored camera poses, but held-out views are still ghosted. The next
-capture should target view coverage and parallax, not more raw training time.
+This is the next hardware experiment after the successful smooth-arc
+`20260626T041136Z` GraphDECO eval run. The pipeline can now produce a
+recognizable held-out 3DGS result from lidar-anchored camera poses. The next
+capture should test repeatability and improve feature/parallax coverage, not
+simply train longer.
 
 ## Hypothesis
 
-If the camera observes the target area from more evenly spaced viewpoints with
-more sideways parallax and no stationary tail, then held-out GraphDECO renders
-should improve over the 48-stable baseline.
+If the camera observes the target area from one smooth shallow arc, with more
+visible texture at multiple depths and no stationary tail, then held-out
+GraphDECO renders should match or improve over the current smooth-arc baseline.
 
 ## Success Criteria
 
@@ -18,15 +19,17 @@ Minimum pass:
 - session validates with no camera gaps;
 - lidar has no major gaps or oversized scan burst clusters;
 - ICP path is smooth and plausible;
-- 48 to 72 stable camera poses are exported from the moving part only;
+- camera/lidar motion diagnostic stays near the current best result
+  (`0.031 m` moving alignment RMSE and `16.0 deg` median direction error);
+- 72 stable camera poses are exported from the moving part only;
 - GraphDECO `--eval` training reaches 7,000 iterations;
-- held-out test median PSNR improves above the 48-stable baseline of
-  `16.887 dB`.
+- held-out test median PSNR is near or above the current smooth-arc baseline of
+  `20.399 dB`.
 
 Stretch target:
 
-- held-out test median PSNR above `20 dB`;
-- held-out test median MAE below `15`;
+- held-out test median PSNR above `22 dB`;
+- held-out test median MAE below `10`;
 - held-out render contact sheet visibly preserves the main objects without
   large double images.
 
@@ -107,15 +110,15 @@ python reconstruction\render_icp_lidar_map.py `
   --lidar-angle-offset-deg 125
 ```
 
-Export 60 stable camera poses as the first attempt:
+Export 72 stable camera poses from the moving window:
 
 ```powershell
 python reconstruction\render_camera_pose_timeline.py `
   "$HOME\Downloads\$session" `
   --trajectory "data\room-motion\$session-icp-trajectory.json" `
-  --output "data\fusion\$session-camera-pose-timeline-60stable.svg" `
-  --json-output "data\fusion\$session-camera-poses-60stable.json" `
-  --sample-count 60 `
+  --output "data\fusion\$session-camera-pose-timeline-72stable.svg" `
+  --json-output "data\fusion\$session-camera-poses-72stable.json" `
+  --sample-count 72 `
   --sample-start-s 8 `
   --sample-end-s 75 `
   --lidar-angle-offset-deg 125
@@ -126,17 +129,17 @@ Run visual checks:
 ```powershell
 python reconstruction\render_camera_pose_contact_sheet.py `
   "$HOME\Downloads\$session" `
-  --pose-json "data\fusion\$session-camera-poses-60stable.json" `
-  --output "data\fusion\$session-camera-pose-contact-sheet-60stable.svg" `
+  --pose-json "data\fusion\$session-camera-poses-72stable.json" `
+  --output "data\fusion\$session-camera-pose-contact-sheet-72stable.svg" `
   --thumbnail-width 640 `
   --jpeg-quality 4
 
 python reconstruction\compare_camera_lidar_motion.py `
   "$HOME\Downloads\$session" `
-  --pose-json "data\fusion\$session-camera-poses-60stable.json" `
+  --pose-json "data\fusion\$session-camera-poses-72stable.json" `
   --intrinsics "config\camera_intrinsics_pi_camera_v2_1920x1080.yaml" `
-  --output "data\fusion\$session-camera-lidar-motion-60stable.svg" `
-  --json-output "data\fusion\$session-camera-lidar-motion-60stable.json" `
+  --output "data\fusion\$session-camera-lidar-motion-72stable.svg" `
+  --json-output "data\fusion\$session-camera-lidar-motion-72stable.json" `
   --min-lidar-step-m 0.005
 ```
 
@@ -145,30 +148,30 @@ Build sparse points and export GraphDECO package:
 ```powershell
 python reconstruction\render_sparse_fused_feature_map.py `
   "$HOME\Downloads\$session" `
-  --pose-json "data\fusion\$session-camera-poses-60stable.json" `
+  --pose-json "data\fusion\$session-camera-poses-72stable.json" `
   --intrinsics "config\camera_intrinsics_pi_camera_v2_1920x1080.yaml" `
-  --output "data\fusion\$session-sparse-fused-feature-map-60stable.svg" `
-  --json-output "data\fusion\$session-sparse-fused-feature-map-60stable.json" `
-  --ply-output "data\fusion\$session-sparse-fused-feature-map-60stable.ply" `
+  --output "data\fusion\$session-sparse-fused-feature-map-72stable.svg" `
+  --json-output "data\fusion\$session-sparse-fused-feature-map-72stable.json" `
+  --ply-output "data\fusion\$session-sparse-fused-feature-map-72stable.ply" `
   --min-lidar-step-m 0.005
 
 python reconstruction\export_colmap_camera_poses.py `
   "$HOME\Downloads\$session" `
-  --pose-json "data\fusion\$session-camera-poses-60stable.json" `
+  --pose-json "data\fusion\$session-camera-poses-72stable.json" `
   --intrinsics "config\camera_intrinsics_pi_camera_v2_1920x1080.yaml" `
-  --points-json "data\fusion\$session-sparse-fused-feature-map-60stable.json" `
-  --output-dir "data\exports\colmap\$session-60stable-undistorted" `
+  --points-json "data\fusion\$session-sparse-fused-feature-map-72stable.json" `
+  --output-dir "data\exports\colmap\$session-72stable-undistorted" `
   --undistort-images `
   --image-width 1920 `
   --jpeg-quality 95
 
 python reconstruction\check_graphdeco_input.py `
-  "data\exports\colmap\$session-60stable-undistorted" `
-  --json-output "data\exports\colmap\$session-60stable-undistorted\graphdeco_input_check.json"
+  "data\exports\colmap\$session-72stable-undistorted" `
+  --json-output "data\exports\colmap\$session-72stable-undistorted\graphdeco_input_check.json"
 
 python reconstruction\package_graphdeco_dataset.py `
-  "data\exports\colmap\$session-60stable-undistorted" `
-  --output "data\exports\gaussian-splatting\$session-60stable-undistorted-graphdeco.zip"
+  "data\exports\colmap\$session-72stable-undistorted" `
+  --output "data\exports\gaussian-splatting\$session-72stable-undistorted-graphdeco.zip"
 ```
 
 ## Colab Validation
