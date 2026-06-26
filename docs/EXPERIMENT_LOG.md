@@ -1697,9 +1697,10 @@ novel-view reconstruction because all rendered views used here were also
 training views.
 
 Next action: run a held-out-view validation in Colab by training with
-`--eval --llffhold 5`, then render both train and test views. Test-view quality,
-not train-view quality, should decide whether this capture is good enough for
-the room MVP.
+`--eval`, then render both train and test views. In the current GraphDECO
+COLMAP loader this uses the LLFF holdout path with its default hold interval.
+Test-view quality, not train-view quality, should decide whether this capture is
+good enough for the room MVP.
 
 ### Lidar-height Target Retest After Camera Adjustment
 
