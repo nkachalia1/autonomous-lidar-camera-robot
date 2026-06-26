@@ -1928,6 +1928,56 @@ Next action: upload
 to Colab, train with `--eval` at 7,000 iterations, render train/test views, and
 compare held-out metrics against the 48-stable baseline.
 
+### Room MVP Capture `20260626T030750Z` 60-view Held-out Validation
+
+The 60-stable package was uploaded to Colab and trained with GraphDECO `--eval`
+for 7,000 iterations at `--resolution 4`. The downloaded bundles were copied
+into the ignored project data directory as:
+
+```text
+data/exports/gaussian-splatting/20260626T030750Z-60stable-undistorted-graphdeco-eval-iter7000.zip
+data/exports/gaussian-splatting/20260626T030750Z-60stable-undistorted-graphdeco-eval-iter7000-render-views.zip
+```
+
+The eval render bundle contained 52 train views and 8 held-out test views.
+
+Train-view comparison:
+
+- frame count: 52;
+- mean/median MAE: `6.211/5.543` image gray levels;
+- mean/median PSNR: `27.303/26.959 dB`;
+- best frame: `00047.png`, PSNR `37.880 dB`, MAE `1.852`;
+- worst frame: `00019.png`, PSNR `18.296 dB`, MAE `16.428`.
+
+Held-out test-view comparison:
+
+- frame count: 8;
+- mean/median MAE: `21.992/19.890` image gray levels;
+- mean/median PSNR: `16.796/16.905 dB`;
+- best frame: `00000.png`, PSNR `21.214 dB`, MAE `10.907`;
+- worst frame: `00003.png`, PSNR `13.334 dB`, MAE `36.930`.
+
+Compared with the previous 48-stable eval baseline:
+
+- train median MAE worsened from `3.960` to `5.543`;
+- train median PSNR worsened from `30.227 dB` to `26.959 dB`;
+- held-out median MAE worsened slightly from `19.214` to `19.890`;
+- held-out median PSNR was essentially unchanged, `16.887 dB` to `16.905 dB`.
+
+Visual result: one held-out frame is decent, but several still show heavy
+ghosting, duplicated objects, and warped foreground/background alignment. The
+new capture improved raw parallax and sparse triangulation, but it did not
+produce cleaner held-out 3DGS views.
+
+Result: fail for the room-MVP held-out gate. The best explanation is no longer
+just "not enough parallax"; the remaining bottleneck is likely pose quality and
+trajectory consistency from the 2D lidar ICP path, especially through the curved
+sections. More Gaussian-splatting training alone is unlikely to solve this.
+
+Next action: inspect camera/lidar motion diagnostics for the 60-view sequence
+and either narrow the export to the best monotonic segment, or add a visual pose
+refinement path before the next Colab run.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
