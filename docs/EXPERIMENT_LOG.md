@@ -1649,6 +1649,58 @@ Next action: run one longer `--resolution 4` training attempt, for example
 same frames remain smeared, prioritize a better capture and pose window rather
 than simply training longer.
 
+### 30-view GraphDECO 7,000-iteration Render Comparison
+
+The same 30-view package was trained in Colab T4 for 7,000 iterations at
+`--resolution 4`, then train views were rendered with GraphDECO `render.py`.
+The downloaded archives were copied into the ignored project data directory as:
+
+```text
+data/exports/gaussian-splatting/20260626T010718Z-30-undistorted-graphdeco-iter7000.zip
+data/exports/gaussian-splatting/20260626T010718Z-30-undistorted-graphdeco-iter7000-train-renders.zip
+```
+
+Iteration-7000 PLY preview:
+
+- vertices: 167,138, up from 69,321 at iteration 3,000 and 1,221 in the seed;
+- full bounds: `x=-0.388..+4.412 m`, `y=-1.758..+1.529 m`,
+  `z=-0.737..+1.014 m`;
+- full opacity min/median/max: `0.120/0.120/0.950`.
+
+Filtered core preview using `--min-opacity 0.3 --central-percentile 98`:
+
+- core preview vertices: 25,813 of 167,138;
+- core bounds: `x=-0.353..+3.317 m`, `y=-1.185..+0.271 m`,
+  `z=-0.386..+0.205 m`;
+- core opacity min/median/max: `0.300/0.462/0.950`.
+
+Rendered train-view comparison:
+
+- frame count: 30;
+- mean/median MAE: `7.617/3.953` image gray levels;
+- mean/median PSNR: `27.672/28.085 dB`;
+- best frame by PSNR: `00016.png`, PSNR `37.914 dB`, MAE `1.777`;
+- worst frame by PSNR: `00022.png`, PSNR `11.941 dB`, MAE `44.797`.
+
+Compared with the 3,000-iteration run:
+
+- median MAE improved from `10.128` to `3.953`;
+- median PSNR improved from `21.609 dB` to `28.085 dB`;
+- visual renders are substantially sharper and more faithful for the middle of
+  the sequence;
+- frame `00022.png` remains poor, so some part of the capture or pose sequence
+  is still unreliable.
+
+Result: pass for a recognizable, materially improved training-view 3DGS
+reconstruction from lidar-anchored camera poses. This is still not a validated
+novel-view reconstruction because all rendered views used here were also
+training views.
+
+Next action: run a held-out-view validation in Colab by training with
+`--eval --llffhold 5`, then render both train and test views. Test-view quality,
+not train-view quality, should decide whether this capture is good enough for
+the room MVP.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
