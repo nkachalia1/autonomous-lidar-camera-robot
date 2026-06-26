@@ -2014,6 +2014,43 @@ Next action: generate a 36-view coarse pose set from roughly 10 to 72 seconds,
 run `compare_camera_lidar_motion.py` with `--min-lidar-step-m 0.01`, and only
 package/retrain if the diagnostic improves substantially.
 
+### Room MVP Capture `20260626T030750Z` 36-view Coarse Diagnostic
+
+A coarser 36-view pose set was generated from the same raw capture between
+roughly 10 and 72 seconds to test whether fewer, more separated views would
+reduce tiny-baseline direction noise from the 60-view export.
+
+Artifacts:
+
+```text
+data/fusion/20260626T030750Z-camera-poses-36coarse.json
+data/fusion/20260626T030750Z-camera-lidar-motion-36coarse.svg
+data/fusion/20260626T030750Z-camera-lidar-motion-36coarse.json
+```
+
+Diagnostic result:
+
+- sampled camera frames: 36;
+- successful visual-motion pairs: 24 of 35;
+- median pose inliers: 152;
+- moving alignment RMSE: 0.067 m;
+- median direction error: 49.6 degrees;
+- camera candidate: `z_forward_x_right`.
+
+This is worse than the 60-view diagnostic's 0.063 m RMSE and 43.9 degree median
+direction error. Per-pair inspection found a few isolated good pairs, but no
+long clean contiguous sequence suitable for GraphDECO retraining. The user
+reported that the robot was moved in a snake-like path, curving left, then right,
+then left while moving forward. That motion is consistent with the diagnostic:
+the 2D lidar ICP trajectory cannot supply camera poses stable enough for clean
+held-out Gaussian-splat views through repeated steering-direction changes.
+
+Result: fail. Do not package or train the 36coarse export.
+
+Next action: collect a new physical capture using one boring, smooth, shallow
+arc only. Do not snake, reverse steering direction, or oscillate left/right
+during the moving window.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session

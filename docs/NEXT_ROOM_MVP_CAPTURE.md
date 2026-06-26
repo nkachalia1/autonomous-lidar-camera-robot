@@ -44,20 +44,27 @@ Use the same type of textured scene, but make it easier for novel views:
 
 ## Motion
 
-Use a smooth sideways arc or shallow two-lane pass instead of a mostly straight
-push with a long stationary tail.
+Use one smooth, shallow forward arc while keeping the target in view. Do not use
+a snake path, S-curve, two-lane pass, or repeated left/right steering changes.
+The previous snake-like capture created enough heading inconsistency that the
+2D-lidar-derived camera poses failed held-out validation.
 
 Recommended with the current 24-inch power-cable limit:
 
 - total duration: 90 seconds;
 - first 5 seconds: still;
-- next 65 to 70 seconds: slow continuous motion;
+- next 65 to 70 seconds: slow continuous motion with one gentle steering
+  direction;
 - final 5 seconds: still;
 - path length: roughly 18 to 24 inches;
-- direction: mostly sideways relative to the target, with a gentle arc so the
-  target stays centered;
+- direction: forward plus a slight, constant left or right curve so the target
+  stays visible;
 - avoid stopping mid-run;
+- avoid reversing the steering direction mid-run;
 - avoid sudden rotations, bumps, or wheel slip.
+
+The path should feel boring. Boring is good here: one continuous curve is easier
+for the 2D lidar ICP trajectory than a visually interesting snake path.
 
 ## Raspberry Pi Capture
 
