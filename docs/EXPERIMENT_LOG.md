@@ -1254,6 +1254,14 @@ GraphDECO, installs CUDA submodules using the patched build path, validates the
 dataset folder, runs the 300-iteration training smoke test, and zips/downloads
 the output directory.
 
+After the user reported difficulty uploading the `.py` file to Colab, a
+Colab-native notebook was added as the recommended path:
+
+- `notebooks/GraphDECO_3DGS_Colab_T4_Smoke.ipynb`.
+
+This notebook avoids `.py` upload entirely and keeps the same fixed install
+logic, dataset validation, `--disable_viewer`, and 300-iteration smoke test.
+
 Next action: rerun the patched install cell in Colab from
 `/content/gaussian-splatting`, then rerun the 300-iteration training cell. If it
 still fails, preserve the verbose build output from the first failing extension.

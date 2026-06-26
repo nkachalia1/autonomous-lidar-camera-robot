@@ -39,7 +39,27 @@ COLMAP feature tracks.
 
 ## 2. Open the notebook
 
-Recommended simplest path: upload and run the Python runner:
+Recommended simplest path: upload/open the Colab-native notebook:
+
+```text
+notebooks/GraphDECO_3DGS_Colab_T4_Smoke.ipynb
+```
+
+In Colab:
+
+1. `File -> Upload notebook`;
+2. choose `GraphDECO_3DGS_Colab_T4_Smoke.ipynb`;
+3. select `Runtime -> Change runtime type -> T4 GPU`;
+4. run the cells top to bottom;
+5. when prompted, upload:
+
+   ```text
+   data\exports\gaussian-splatting\20260625T214456Z-steady-undistorted-graphdeco.zip
+   ```
+
+This avoids uploading a `.py` file entirely.
+
+Alternative script path: upload and run the Python runner:
 
 ```text
 notebooks/graphdeco_3dgs_smoke_colab.py
@@ -61,11 +81,11 @@ In Colab:
    data\exports\gaussian-splatting\20260625T214456Z-steady-undistorted-graphdeco.zip
    ```
 
-The script performs the same steps as the notebook: CUDA diagnostics, GraphDECO
-clone, fixed `--no-build-isolation` CUDA submodule install, dataset validation,
-300 training iterations, and output ZIP download.
+The script performs the same steps: CUDA diagnostics, GraphDECO clone, fixed
+`--no-build-isolation` CUDA submodule install, dataset validation, 300 training
+iterations, and output ZIP download.
 
-Alternative notebook path:
+Older notebook path:
 
 Open:
 

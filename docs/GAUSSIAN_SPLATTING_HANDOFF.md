@@ -53,6 +53,8 @@ The export was also packaged for a GPU-notebook smoke test:
   `data/exports/gaussian-splatting/20260625T214456Z-steady-undistorted-graphdeco.package_manifest.json`;
 - uploadable Colab Python runner:
   `notebooks/graphdeco_3dgs_smoke_colab.py`;
+- recommended Colab notebook:
+  `notebooks/GraphDECO_3DGS_Colab_T4_Smoke.ipynb`;
 - notebook:
   `notebooks/GraphDECO_3DGS_Smoke_Test.ipynb`;
 - runbook:
