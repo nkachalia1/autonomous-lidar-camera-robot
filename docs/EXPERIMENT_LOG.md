@@ -1563,6 +1563,48 @@ Next action: run a longer Colab T4 training test on the same 30-view dataset,
 starting with 3,000 iterations. Use `--resolution 4` if memory allows, and fall
 back to `--resolution 8` if Colab reports a CUDA out-of-memory error.
 
+### 30-view GraphDECO 3,000-iteration Training Preview
+
+The same 30-view package was trained in Colab T4 for 3,000 iterations at
+`--resolution 4`. The user reported successful completion and downloaded:
+
+```text
+/content/fuse_3dgs_output/20260626T010718Z-30-undistorted-graphdeco (2)-iter3000.zip
+```
+
+The archive was copied locally as:
+
+```text
+data/exports/gaussian-splatting/20260626T010718Z-30-undistorted-graphdeco-iter3000.zip
+```
+
+The full iteration-3000 PLY preview measured:
+
+- vertices: 69,321, up from the 1,221-point seed;
+- bounds: `x=-0.416..+5.462 m`, `y=-3.179..+3.682 m`,
+  `z=-3.709..+2.099 m`;
+- opacity min/median/max after display clamping:
+  `0.120/0.175/0.950`.
+
+The large `y` and `z` bounds indicate floaters/outliers, so the preview tool was
+extended with optional opacity and central-percentile filtering. A stricter core
+preview using `--min-opacity 0.3 --central-percentile 98` measured:
+
+- core preview vertices: 27,860 of 69,321;
+- core bounds: `x=-0.264..+4.975 m`, `y=-1.643..+0.304 m`,
+  `z=-0.477..+0.292 m`;
+- core opacity min/median/max: `0.300/0.939/0.950`.
+
+Result: pass for 3DGS densification and plausible high-confidence core
+structure. The model is not yet judged as visually good. The unfiltered output
+contains substantial floaters, and the current diagnostic preview is not a true
+Gaussian renderer.
+
+Next action: render train-view images from the GraphDECO model in Colab and
+compare them to the corresponding camera frames. If rendered views resemble the
+room, proceed to a longer/better capture. If they are smeared or misregistered,
+improve camera pose sampling and/or scene texture before longer training.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session

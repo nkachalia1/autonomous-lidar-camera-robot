@@ -171,10 +171,13 @@ def median(values: list[float]) -> float:
 
 
 def summarize(points: list[dict[str, Any]], metadata: dict[str, Any]) -> dict[str, Any]:
+    if not points:
+        raise ValueError("no points available for preview after filtering")
     opacities = [point_opacity(point) for point in points]
     colors = [point_rgb(point) for point in points]
     return {
         **metadata,
+        "preview_vertex_count": len(points),
         **bounds(points),
         "opacity_min": min(opacities),
         "opacity_median": median(opacities),
@@ -219,7 +222,7 @@ def render_svg(
         f'<text x="48" y="52" fill="#f8fafc" font-size="30" font-weight="700">{html.escape(title)}</text>',
         (
             f'<text x="48" y="82" fill="#94a3b8" font-size="16">'
-            f'vertices={summary["vertex_count"]}; '
+            f'vertices={summary["preview_vertex_count"]}/{summary["vertex_count"]}; '
             f'x={summary["x_min_m"]:+.2f}..{summary["x_max_m"]:+.2f} m; '
             f'y={summary["y_min_m"]:+.2f}..{summary["y_max_m"]:+.2f} m; '
             f'z={summary["z_min_m"]:+.2f}..{summary["z_max_m"]:+.2f} m; '
@@ -291,7 +294,7 @@ def render_png(
     }
     cv2.putText(image, title, (48, 52), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (252, 250, 248), 2, cv2.LINE_AA)
     subtitle = (
-        f'vertices={summary["vertex_count"]}; '
+        f'vertices={summary["preview_vertex_count"]}/{summary["vertex_count"]}; '
         f'x={summary["x_min_m"]:+.2f}..{summary["x_max_m"]:+.2f}m; '
         f'y={summary["y_min_m"]:+.2f}..{summary["y_max_m"]:+.2f}m; '
         f'z={summary["z_min_m"]:+.2f}..{summary["z_max_m"]:+.2f}m; '
@@ -331,6 +334,53 @@ def render_png(
         raise RuntimeError(f"failed to write PNG: {output}")
 
 
+def filter_points(
+    points: list[dict[str, Any]],
+    *,
+    min_opacity: float | None,
+    central_percentile: float | None,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    preview_points = points
+    filters: dict[str, Any] = {
+        "filter_min_opacity": min_opacity,
+        "filter_central_percentile": central_percentile,
+        "filter_input_vertices": len(points),
+    }
+
+    if min_opacity is not None:
+        preview_points = [
+            point for point in preview_points if point_opacity(point) >= min_opacity
+        ]
+
+    if central_percentile is not None and preview_points:
+        if not 0.0 < central_percentile <= 100.0:
+            raise ValueError("--central-percentile must be > 0 and <= 100")
+        tail = 0.5 * (100.0 - central_percentile)
+        axis_limits: dict[str, tuple[float, float]] = {}
+        for axis in ("x", "y", "z"):
+            values = np.array([float(point[axis]) for point in preview_points], dtype=np.float64)
+            lo = float(np.percentile(values, tail))
+            hi = float(np.percentile(values, 100.0 - tail))
+            axis_limits[axis] = (lo, hi)
+        preview_points = [
+            point
+            for point in preview_points
+            if all(
+                axis_limits[axis][0] <= float(point[axis]) <= axis_limits[axis][1]
+                for axis in ("x", "y", "z")
+            )
+        ]
+        filters["filter_axis_limits_m"] = {
+            axis: [round(lo, 6), round(hi, 6)]
+            for axis, (lo, hi) in axis_limits.items()
+        }
+
+    filters["filter_output_vertices"] = len(preview_points)
+    if not preview_points:
+        raise ValueError("all points were removed by preview filters")
+    return preview_points, filters
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Render an SVG preview of a GraphDECO/input PLY")
     parser.add_argument("ply", type=Path)
@@ -339,13 +389,28 @@ def main() -> int:
     parser.add_argument("--json-output", type=Path)
     parser.add_argument("--title", default="GraphDECO point cloud preview")
     parser.add_argument("--max-points", type=int, default=12000)
+    parser.add_argument(
+        "--min-opacity",
+        type=float,
+        help="Only preview points with displayed opacity at least this value.",
+    )
+    parser.add_argument(
+        "--central-percentile",
+        type=float,
+        help="Only preview points inside this central coordinate percentile on x/y/z.",
+    )
     args = parser.parse_args()
 
     points, metadata = parse_ply(args.ply)
-    summary = summarize(points, metadata)
-    render_svg(args.output, points, summary, title=args.title, max_points=args.max_points)
+    preview_points, filters = filter_points(
+        points,
+        min_opacity=args.min_opacity,
+        central_percentile=args.central_percentile,
+    )
+    summary = summarize(preview_points, {**metadata, **filters})
+    render_svg(args.output, preview_points, summary, title=args.title, max_points=args.max_points)
     if args.png_output:
-        render_png(args.png_output, points, summary, title=args.title, max_points=args.max_points)
+        render_png(args.png_output, preview_points, summary, title=args.title, max_points=args.max_points)
     if args.json_output:
         args.json_output.parent.mkdir(parents=True, exist_ok=True)
         args.json_output.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
@@ -354,7 +419,7 @@ def main() -> int:
         print(f"Wrote {args.png_output}")
     if args.json_output:
         print(f"Wrote {args.json_output}")
-    print(f"Vertices: {summary['vertex_count']}")
+    print(f"Vertices: {summary['preview_vertex_count']} previewed / {summary['vertex_count']} original")
     print(
         "Bounds m: "
         f"x {summary['x_min_m']:+.3f}..{summary['x_max_m']:+.3f}, "
