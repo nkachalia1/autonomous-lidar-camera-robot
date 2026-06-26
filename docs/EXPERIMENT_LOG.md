@@ -1605,6 +1605,50 @@ compare them to the corresponding camera frames. If rendered views resemble the
 room, proceed to a longer/better capture. If they are smeared or misregistered,
 improve camera pose sampling and/or scene texture before longer training.
 
+### 30-view GraphDECO 3,000-iteration Render Comparison
+
+GraphDECO `render.py` was run in Colab for the 3,000-iteration model and
+returned a train-view render archive:
+
+```text
+C:\Users\Neel\Downloads\20260626T010718Z-30-undistorted-graphdeco (2)-iter3000-train-renders.zip
+```
+
+The archive contained:
+
+- `ours_3000/gt`: 30 ground-truth train frames;
+- `ours_3000/renders`: 30 rendered train frames.
+
+A local comparison helper was added:
+
+```text
+reconstruction/compare_graphdeco_renders.py
+```
+
+It creates a side-by-side contact sheet with ground truth, render, and amplified
+difference images, plus a JSON metrics summary. For this run:
+
+- frame count: 30;
+- mean/median MAE: `12.775/10.128` image gray levels;
+- mean/median PSNR: `21.025/21.609 dB`;
+- best frame by PSNR: `00007.png`, PSNR `29.440 dB`, MAE `4.456`;
+- worst frame by PSNR: `00022.png`, PSNR `12.313 dB`, MAE `42.042`.
+
+Visual result: pass for the first rendered-view reconstruction sanity check. The
+renders are blurry and contain ghosting, but they visibly resemble the real room
+and recover the main training-view objects. The quality is uneven across the
+camera sequence, with some middle frames substantially better than edge/late
+frames.
+
+Result: the lidar-anchored camera pose export is good enough to train a
+recognizable 3DGS model on training views. It is not yet a clean or complete
+room reconstruction, and novel-view quality has not been validated.
+
+Next action: run one longer `--resolution 4` training attempt, for example
+7,000 iterations, then render train views again and compare metrics. If the
+same frames remain smeared, prioritize a better capture and pose window rather
+than simply training longer.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
