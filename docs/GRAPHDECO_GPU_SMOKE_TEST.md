@@ -124,6 +124,10 @@ tracks, the useful result is a loader/training compatibility answer.
   `diff-gaussian-rasterization`: pip build isolation hid the runtime's installed
   `torch`. Use the updated notebook cell, which installs GraphDECO CUDA
   submodules with `--no-build-isolation`.
+- `NameError: name 'PY' is not defined`: the notebook is using an older heredoc
+  version of the install cell. Use the current
+  `GraphDECO_3DGS_Colab_T4_Smoke.ipynb`, or replace the install cell with the
+  no-heredoc version.
 - CUDA extension build failure: notebook GPU/PyTorch/CUDA toolchain mismatch.
 - Missing `cameras.bin`, `images.bin`, or `points3D.bin`: package the dataset
   again after running the local GraphDECO checker.

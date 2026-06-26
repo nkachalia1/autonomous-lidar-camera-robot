@@ -1262,6 +1262,28 @@ Colab-native notebook was added as the recommended path:
 This notebook avoids `.py` upload entirely and keeps the same fixed install
 logic, dataset validation, `--disable_viewer`, and 300-iteration smoke test.
 
+The first T4 run of the new notebook confirmed CUDA visibility:
+
+```text
+torch 2.11.0+cu128
+torch cuda 12.8
+cuda available True
+device Tesla T4
+```
+
+but failed inside the install cell with:
+
+```text
+NameError: name 'PY' is not defined
+```
+
+This was caused by using a shell heredoc (`python - <<'PY'`) inside a Jupyter
+cell. Colab split the heredoc body across notebook execution contexts, so the
+terminator `PY` was interpreted as Python code. Both GraphDECO Colab notebooks
+were patched to remove heredocs and run the PyTorch/CUDA diagnostics as normal
+Python cell lines. The install cell now also pins `setuptools<82` to satisfy the
+current Colab Torch runtime constraint.
+
 Next action: rerun the patched install cell in Colab from
 `/content/gaussian-splatting`, then rerun the 300-iteration training cell. If it
 still fails, preserve the verbose build output from the first failing extension.
