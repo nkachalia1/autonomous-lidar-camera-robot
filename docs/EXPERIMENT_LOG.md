@@ -1702,6 +1702,104 @@ COLMAP loader this uses the LLFF holdout path with its default hold interval.
 Test-view quality, not train-view quality, should decide whether this capture is
 good enough for the room MVP.
 
+### 30-view GraphDECO 7,000-iteration Held-out Validation
+
+The 30-view package was retrained in Colab with GraphDECO `--eval` at
+7,000 iterations and `--resolution 4`. The downloaded model and render bundles
+were copied into the ignored project data directory as:
+
+```text
+data/exports/gaussian-splatting/20260626T010718Z-30-undistorted-graphdeco-eval-iter7000.zip
+data/exports/gaussian-splatting/20260626T010718Z-30-undistorted-graphdeco-eval-iter7000-render-views.zip
+```
+
+The eval render bundle contained 26 train views and 4 held-out test views.
+
+Train-view comparison:
+
+- frame count: 26;
+- mean/median MAE: `8.332/6.405` image gray levels;
+- mean/median PSNR: `25.349/23.075 dB`.
+
+Held-out test-view comparison:
+
+- frame count: 4;
+- mean/median MAE: `26.726/25.102` image gray levels;
+- mean/median PSNR: `15.700/15.062 dB`.
+
+The held-out contact sheet showed that one held-out view was passable, but the
+others had major ghosting and warped objects. The eval model point cloud did not
+catastrophically diverge:
+
+- vertices: 177,875;
+- full bounds: `x=-0.384..+4.613 m`, `y=-1.731..+1.409 m`,
+  `z=-0.897..+0.980 m`;
+- filtered core vertices: 25,479 of 177,875;
+- filtered core bounds: `x=-0.311..+4.043 m`, `y=-1.128..+0.307 m`,
+  `z=-0.375..+0.220 m`.
+
+Result: fail for robust novel/held-out view synthesis, but pass as a useful
+diagnostic. The model can reproduce many training views, yet generalizes poorly
+between the sparse 30 selected views. This points to insufficient/even view
+coverage and remaining pose-window issues, not a total training crash.
+
+Next action: before collecting new hardware data, re-export the same raw session
+with denser camera sampling from the actual moving window and rerun held-out
+validation.
+
+### 48-view Stable-window GraphDECO Re-export
+
+The original 30-view export included a nearly stationary tail: samples 24 through
+30 moved only about 1 to 6 mm per step. A software-only re-export was generated
+from the same raw session using 48 samples between 9 and 52 seconds, avoiding
+the initial edge frame and the stationary tail.
+
+Commands generated these ignored artifacts:
+
+```text
+data/fusion/20260626T010718Z-camera-poses-48stable.json
+data/fusion/20260626T010718Z-camera-lidar-motion-48stable.json
+data/fusion/20260626T010718Z-sparse-fused-feature-map-48stable.json
+data/exports/colmap/20260626T010718Z-48stable-undistorted
+data/exports/gaussian-splatting/20260626T010718Z-48stable-undistorted-graphdeco.zip
+```
+
+Pose/motion check:
+
+- sampled camera frames: 48;
+- sample window: 8.999 to 51.993 seconds;
+- successful visual-motion pairs: 39 of 47;
+- median pose inliers: 148;
+- moving alignment RMSE: `0.030 m`;
+- median direction error: `18.0 deg`.
+
+Sparse fused feature map:
+
+- accepted sparse 3D points: 1,454;
+- pairs with accepted points: 17 of 47;
+- median reprojection error: `2.72 px`;
+- median triangulation angle: `1.04 deg`;
+- point extents: `x=-0.38..+2.00 m`, `y=-0.97..+0.02 m`,
+  `z=-0.09..+0.33 m`.
+
+GraphDECO package check:
+
+- camera images: 48 at 1920x1080;
+- camera model: `PINHOLE`;
+- sparse points: 1,454;
+- missing images: 0;
+- ZIP size: 10,633,316 bytes;
+- expected warning remains: zero COLMAP feature-track references.
+
+Result: pass for a denser, cleaner, stable-window dataset package. This is the
+next best Colab candidate because it targets the actual held-out failure mode
+without requiring another Pi capture.
+
+Next action: upload
+`data/exports/gaussian-splatting/20260626T010718Z-48stable-undistorted-graphdeco.zip`
+to Colab, train with `--eval` at 7,000 iterations, render train/test views, and
+compare held-out metrics against the 30-view eval baseline.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
