@@ -1245,6 +1245,15 @@ Notebook update:
 - print PyTorch/CUDA and `nvcc` versions before compiling;
 - pass `--disable_viewer` to `train.py` for notebook runs.
 
+An equivalent uploadable Colab Python runner was added:
+
+- `notebooks/graphdeco_3dgs_smoke_colab.py`.
+
+It performs CUDA diagnostics, prompts for the packaged dataset ZIP, clones
+GraphDECO, installs CUDA submodules using the patched build path, validates the
+dataset folder, runs the 300-iteration training smoke test, and zips/downloads
+the output directory.
+
 Next action: rerun the patched install cell in Colab from
 `/content/gaussian-splatting`, then rerun the 300-iteration training cell. If it
 still fails, preserve the verbose build output from the first failing extension.
