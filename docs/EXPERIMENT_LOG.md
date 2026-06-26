@@ -1860,6 +1860,74 @@ sideways arc or two-lane pass around the target area, keeping objects visible
 throughout the motion and avoiding a stationary tail. Export 48 to 72 stable
 views and repeat the `--eval` held-out validation.
 
+### Room MVP Capture `20260626T030750Z` and 60-view Package
+
+Session `20260626T030750Z` was captured using the next room MVP protocol and
+copied to the Windows workstation. Validation passed:
+
+- mode: `reconstruction_candidate`;
+- camera: 1,343 frames over 89.449 seconds;
+- camera gap events above 1.5x nominal: 0;
+- lidar: 683 scans over 88.718 seconds;
+- lidar gap events above 1.5x nominal: 0;
+- lidar valid returns per scan min/median/max: 645/723/809;
+- oversized lidar scans: 0;
+- shared monotonic-clock overlap: 88.359 seconds;
+- geometry valid for reconstruction: true.
+
+ICP trajectory reconstruction:
+
+- selected scans for ICP: 145;
+- ICP steps/rejected steps: 144/0;
+- skipped oversized scans: 0;
+- estimated path length: 0.918 m;
+- estimated net displacement: 0.581 m;
+- estimated net rotation: 5.07 degrees;
+- map output points: 218,708.
+
+The 60-stable camera pose export used frames from 7.998 to 74.985 seconds. The
+trajectory shows a more deliberate curved path than the prior capture, with
+about 0.45 m net camera displacement across the sampled window and no stationary
+tail.
+
+Sparse fused feature map:
+
+- accepted sparse 3D points: 2,181;
+- pairs with accepted points: 16 of 59;
+- median reprojection error: 1.43 px;
+- median triangulation angle: 5.70 degrees;
+- point extents: `x=-0.40..+3.57 m`, `y=-0.32..+1.73 m`,
+  `z=+0.01..+0.30 m`.
+
+This is a better sparse geometry input than the previous 48-stable package:
+more seed points and much stronger triangulation angle. The pair contribution
+rate remains low, but the accepted pairs are geometrically more useful.
+
+GraphDECO package:
+
+```text
+data/exports/gaussian-splatting/20260626T030750Z-60stable-undistorted-graphdeco.zip
+```
+
+Package/check results:
+
+- images: 60 at 1920x1080;
+- camera model: `PINHOLE`;
+- sparse points: 2,181;
+- missing images: 0;
+- ZIP size: 12,914,510 bytes;
+- GraphDECO input readiness: pass;
+- expected warning remains: zero COLMAP feature-track references.
+
+Result: pass for capture quality, trajectory reconstruction, 60-view export, and
+GraphDECO packaging. This is the strongest candidate package so far for
+held-out 3DGS validation.
+
+Next action: upload
+`data/exports/gaussian-splatting/20260626T030750Z-60stable-undistorted-graphdeco.zip`
+to Colab, train with `--eval` at 7,000 iterations, render train/test views, and
+compare held-out metrics against the 48-stable baseline.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
