@@ -1162,6 +1162,61 @@ run the smallest training command against this export. If training starts, judge
 only loader compatibility first; visual quality is a separate capture and pose
 quality problem.
 
+### GraphDECO GPU Notebook and Dataset Package
+
+A GPU-notebook smoke-test path was added because the Windows/WSL workstation did
+not expose `nvidia-smi`, while GraphDECO training requires CUDA-capable PyTorch
+extensions. The target runtime for the first live training test is Google Colab
+or equivalent with a T4 GPU. A T4 is acceptable for this tiny 9-image, low
+resolution, 300-iteration smoke test; it is not a final-quality room training
+target.
+
+Added files:
+
+- `reconstruction/package_graphdeco_dataset.py`;
+- `notebooks/GraphDECO_3DGS_Smoke_Test.ipynb`;
+- `docs/GRAPHDECO_GPU_SMOKE_TEST.md`.
+
+Local checks:
+
+```text
+python -m py_compile reconstruction/package_graphdeco_dataset.py reconstruction/check_graphdeco_input.py
+Get-Content -Raw notebooks/GraphDECO_3DGS_Smoke_Test.ipynb | ConvertFrom-Json
+```
+
+Packaging command:
+
+```text
+python reconstruction/package_graphdeco_dataset.py \
+  data/exports/colmap/20260625T214456Z-steady-undistorted \
+  --output data/exports/gaussian-splatting/20260625T214456Z-steady-undistorted-graphdeco.zip
+```
+
+Generated artifacts:
+
+- `data/exports/gaussian-splatting/20260625T214456Z-steady-undistorted-graphdeco.zip`;
+- `data/exports/gaussian-splatting/20260625T214456Z-steady-undistorted-graphdeco.package_manifest.json`.
+
+Measurements:
+
+- package files: 20;
+- package size: 1,764,364 bytes;
+- image files: 9;
+- missing image references: 0;
+- sparse seed points: 327;
+- COLMAP feature-track references: 0;
+- included loader inputs: `images/`, `sparse/0/cameras.bin`,
+  `sparse/0/images.bin`, `sparse/0/points3D.bin`, and
+  `sparse/0/points3D.ply`.
+
+Result: pass for notebook preparation and dataset packaging. Actual GraphDECO
+training has not yet been run. The next hardware/software dependency is a Colab
+or other CUDA runtime.
+
+Next action: open `notebooks/GraphDECO_3DGS_Smoke_Test.ipynb` in Colab, select a
+T4 GPU, upload the generated ZIP, and run all cells until either the trainer
+reaches iteration 300 or produces a concrete loader/build error.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session

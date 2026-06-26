@@ -43,6 +43,19 @@ The local GraphDECO input-readiness checker also passed:
 - camera model: `PINHOLE`;
 - caveat: `points3D.txt` still has zero COLMAP feature-track references.
 
+The export was also packaged for a GPU-notebook smoke test:
+
+- package command:
+  `python reconstruction/package_graphdeco_dataset.py data/exports/colmap/20260625T214456Z-steady-undistorted --output data/exports/gaussian-splatting/20260625T214456Z-steady-undistorted-graphdeco.zip`;
+- upload ZIP:
+  `data/exports/gaussian-splatting/20260625T214456Z-steady-undistorted-graphdeco.zip`;
+- package manifest:
+  `data/exports/gaussian-splatting/20260625T214456Z-steady-undistorted-graphdeco.package_manifest.json`;
+- notebook:
+  `notebooks/GraphDECO_3DGS_Smoke_Test.ipynb`;
+- runbook:
+  `docs/GRAPHDECO_GPU_SMOKE_TEST.md`.
+
 After resolving the Windows Start Menu shortcut, COLMAP was also found inside
 the `Ubuntu-22.04` WSL distro:
 
