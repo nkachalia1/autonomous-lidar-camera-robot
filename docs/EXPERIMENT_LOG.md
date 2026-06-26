@@ -1519,6 +1519,50 @@ Next action: extract and inspect
 structure are plausible, run a longer Colab training test, for example 3,000
 iterations, on the same packaged dataset.
 
+### 30-view GraphDECO Point-cloud Preview
+
+The 300-iteration GraphDECO output archive for `20260626T010718Z` was extracted
+locally and inspected with a lightweight diagnostic renderer. This renderer reads
+ASCII COLMAP seed PLY files and binary GraphDECO Gaussian PLY files, but it is
+not a full Gaussian splat renderer.
+
+Added tool:
+
+```text
+reconstruction/render_graphdeco_point_cloud_preview.py
+```
+
+Generated ignored preview artifacts:
+
+```text
+data/exports/gaussian-splatting/20260626T010718Z-30-undistorted-input-preview.png
+data/exports/gaussian-splatting/20260626T010718Z-30-undistorted-iter300-preview.png
+```
+
+Seed `input.ply` measurements:
+
+- vertices: 1221;
+- bounds: `x=-0.167..+4.085 m`, `y=-1.733..-0.050 m`,
+  `z=-0.153..+0.495 m`;
+- median opacity used for preview: 0.82.
+
+Iteration-300 GraphDECO PLY measurements:
+
+- vertices: 1221;
+- bounds: `x=-0.159..+4.080 m`, `y=-1.736..-0.052 m`,
+  `z=-0.170..+0.498 m`;
+- opacity min/median/max after sigmoid and clamping: `0.120/0.120/0.950`.
+
+Visual result: pass for gross-structure sanity. The input seed and
+iteration-300 output both show a coherent elongated structure instead of random
+noise, and the iteration-300 bounds remain close to the seed bounds. The
+300-iteration result is still very early: point count did not densify yet and
+the median opacity is low, so quality should not be judged from this run alone.
+
+Next action: run a longer Colab T4 training test on the same 30-view dataset,
+starting with 3,000 iterations. Use `--resolution 4` if memory allows, and fall
+back to `--resolution 8` if Colab reports a CUDA out-of-memory error.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
