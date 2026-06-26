@@ -2192,6 +2192,63 @@ algorithm: use one smooth shallow arc, add more textured/structured objects at
 the lidar/camera working distance, avoid stationary tail frames, and export a
 72-view moving-window package for a repeat validation run.
 
+### Smooth-arc Repeat Capture `20260626T212418Z`
+
+Session `20260626T212418Z` was captured as a repeat/improvement attempt after
+the successful smooth-arc `20260626T041136Z` run. The session copied to the
+Windows workstation and validated successfully:
+
+- mode: `reconstruction_candidate`;
+- camera: 1,343 frames over 89.449 seconds;
+- camera gap events above 1.5x nominal: 0;
+- lidar: 655 scans over 88.694 seconds;
+- lidar gap events above 1.5x nominal: 3;
+- oversized lidar scans: 3;
+- shared monotonic-clock overlap: 88.312 seconds;
+- geometry valid for reconstruction: true.
+
+The lidar warnings were limited to three scan-gap/oversized-scan events. The
+ICP renderer skipped the oversized scans:
+
+- input scans: 655;
+- selected scans for ICP: 139;
+- ICP steps/rejected steps: 138/0;
+- skipped oversized scans: 3;
+- estimated path length: 0.736 m;
+- estimated net displacement: 0.653 m;
+- estimated net rotation: -16.24 degrees;
+- map output points: 258,721.
+
+The 72-view moving-window export failed the camera/lidar motion gate:
+
+- successful visual-motion pairs: 46 of 71;
+- median pose inliers: 451;
+- moving alignment RMSE: 0.061 m;
+- median direction error: 68.5 degrees;
+- camera candidate: `z_forward_x_right`.
+
+Two lower-density software re-exports from the same motion window did not
+recover the run:
+
+- 60-view export: 45 of 59 successful pairs, median pose inliers 259,
+  moving alignment RMSE 0.054 m, median direction error 50.3 degrees,
+  camera candidate `z_forward_x_left`;
+- 48-view export: 34 of 47 successful pairs, median pose inliers 420,
+  moving alignment RMSE 0.058 m, median direction error 46.5 degrees,
+  camera candidate `z_forward_x_left`.
+
+Result: fail for GraphDECO packaging. The session is internally consistent and
+the lidar map is plausible, but camera/lidar direction agreement is far worse
+than the current best smooth-arc result (`0.031 m` RMSE and `16.0 deg` median
+direction error). The changing camera-candidate result in the 60/48-view checks
+is another sign that the visual-motion estimate is not stable for this capture.
+
+Next action: do not package or train this session. Re-capture with a more
+camera-friendly scene and motion: keep textured objects larger and closer in the
+camera view, reduce shiny/blank regions, make the arc even slower and smoother,
+and avoid any wheel slip, cable tug, or steering correction during the moving
+window.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
