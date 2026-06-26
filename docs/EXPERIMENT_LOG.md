@@ -2051,6 +2051,86 @@ Next action: collect a new physical capture using one boring, smooth, shallow
 arc only. Do not snake, reverse steering direction, or oscillate left/right
 during the moving window.
 
+### Smooth-arc Capture `20260626T041136Z` and 60-view Package
+
+Session `20260626T041136Z` was captured after changing the motion instruction
+from a snake-like path to one smoother shallow arc. The session was copied to
+the Windows workstation and validated successfully:
+
+- mode: `reconstruction_candidate`;
+- camera: 1,343 frames over 89.450 seconds;
+- camera gap events above 1.5x nominal: 0;
+- lidar: 684 scans over 88.670 seconds;
+- lidar gap events above 1.5x nominal: 0;
+- lidar valid returns per scan min/median/max: 655/725/791;
+- oversized lidar scans: 0;
+- shared monotonic-clock overlap: 88.305 seconds;
+- geometry valid for reconstruction: true.
+
+ICP trajectory reconstruction:
+
+- selected scans for ICP: 146;
+- ICP steps/rejected steps: 145/0;
+- skipped oversized scans: 0;
+- estimated path length: 0.733 m;
+- estimated net displacement: 0.457 m;
+- estimated net rotation: -19.17 degrees;
+- map output points: 226,683.
+
+The 60-stable camera pose export used frames from 7.998 to 74.986 seconds.
+Compared with the snake-like `20260626T030750Z` capture, the trajectory is
+smoother and the camera/lidar motion diagnostic is much more consistent:
+
+- successful visual-motion pairs: 24 of 59;
+- median pose inliers: 90;
+- moving alignment RMSE: 0.031 m;
+- median direction error: 16.0 degrees;
+- camera candidate: `z_forward_x_right`.
+
+This is a major improvement over the snake-like 60-stable diagnostic:
+
+- moving alignment RMSE: `0.063 m -> 0.031 m`;
+- median direction error: `43.9 deg -> 16.0 deg`.
+
+Sparse fused feature map:
+
+- accepted sparse 3D points: 655;
+- pairs with accepted points: 9 of 59;
+- median reprojection error: 1.89 px;
+- median triangulation angle: 0.52 degrees;
+- point extents: `x=-0.32..+2.16 m`, `y=-1.03..-0.01 m`,
+  `z=-0.02..+0.25 m`.
+
+The sparse geometry is weaker than the prior 48-stable package despite the
+better camera/lidar motion agreement. The likely reason is insufficient visual
+feature/parallax coverage in the selected 60-view window, plus a low-motion tail
+near the end of the sampled sequence.
+
+GraphDECO package:
+
+```text
+data/exports/gaussian-splatting/20260626T041136Z-60stable-undistorted-graphdeco.zip
+```
+
+Package/check results:
+
+- images: 60 at 1920x1080;
+- camera model: `PINHOLE`;
+- sparse points: 655;
+- missing images: 0;
+- ZIP size: 10,933,541 bytes;
+- GraphDECO input readiness: pass;
+- expected warning remains: zero COLMAP feature-track references.
+
+Result: partial pass. This is the best camera/lidar motion agreement so far,
+but the sparse seed geometry is weak. The package is valid for a GraphDECO eval
+run, but if held-out results are poor, the next fix should be more textured
+features and usable parallax, not more snake-like steering.
+
+Next action: run GraphDECO `--eval` at 7,000 iterations on the valid package, or
+first try a software-only moving-window re-export that removes the low-motion
+tail.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
