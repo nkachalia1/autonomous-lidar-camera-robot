@@ -209,6 +209,10 @@ python train.py `
   --iterations 1000
 ```
 
+For Colab/T4 notebook runs, use the patched notebook install cell that installs
+GraphDECO CUDA submodules with `--no-build-isolation`, and include
+`--disable_viewer` in the training command.
+
 Expected outcomes:
 
 - Best case: GraphDECO accepts the dataset and starts optimization.

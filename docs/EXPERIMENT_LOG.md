@@ -1217,6 +1217,38 @@ Next action: open `notebooks/GraphDECO_3DGS_Smoke_Test.ipynb` in Colab, select a
 T4 GPU, upload the generated ZIP, and run all cells until either the trainer
 reaches iteration 300 or produces a concrete loader/build error.
 
+### Colab T4 GraphDECO First Install Attempt
+
+The user ran the first notebook on Google Colab with a T4 GPU. Repository clone
+and recursive submodule checkout succeeded. The first install command failed
+while pip was preparing the `diff-gaussian-rasterization` wheel:
+
+```text
+Getting requirements to build wheel did not run successfully.
+Failed to build 'file:///content/gaussian-splatting/submodules/diff-gaussian-rasterization'
+```
+
+The user then ran the training cell, but `train.py` exited with status 1 because
+the required CUDA rasterizer extension had not been installed. This did not test
+the project dataset yet.
+
+Result: fail for GraphDECO environment setup, not for lidar/camera export
+format. The likely cause is pip build isolation hiding Colab's installed
+`torch` from a GraphDECO CUDA submodule whose `setup.py` imports
+`torch.utils.cpp_extension`.
+
+Notebook update:
+
+- install CUDA submodules one at a time;
+- use `--no-build-isolation` for `diff-gaussian-rasterization`, `simple-knn`,
+  and optional `fused-ssim`;
+- print PyTorch/CUDA and `nvcc` versions before compiling;
+- pass `--disable_viewer` to `train.py` for notebook runs.
+
+Next action: rerun the patched install cell in Colab from
+`/content/gaussian-splatting`, then rerun the 300-iteration training cell. If it
+still fails, preserve the verbose build output from the first failing extension.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session

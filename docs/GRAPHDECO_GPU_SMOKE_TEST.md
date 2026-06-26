@@ -72,6 +72,10 @@ tracks, the useful result is a loader/training compatibility answer.
 
 ## 4. Common failure meanings
 
+- `Getting requirements to build wheel` while installing
+  `diff-gaussian-rasterization`: pip build isolation hid the runtime's installed
+  `torch`. Use the updated notebook cell, which installs GraphDECO CUDA
+  submodules with `--no-build-isolation`.
 - CUDA extension build failure: notebook GPU/PyTorch/CUDA toolchain mismatch.
 - Missing `cameras.bin`, `images.bin`, or `points3D.bin`: package the dataset
   again after running the local GraphDECO checker.
@@ -79,6 +83,35 @@ tracks, the useful result is a loader/training compatibility answer.
   `SIMPLE_PINHOLE`.
 - Training runs but splat is ugly: expected for this first dataset; next capture
   needs more views, more texture, and better camera pose support.
+
+## 5. Repair cell for the first Colab build failure
+
+If the install cell already failed, run this cell in Colab from inside
+`/content/gaussian-splatting`:
+
+```python
+%cd /content/gaussian-splatting
+
+!python -m pip install -q --upgrade pip setuptools wheel
+!python -m pip install -q plyfile tqdm opencv-python joblib ninja
+
+!python - <<'PY'
+import torch
+print('torch', torch.__version__)
+print('torch cuda', torch.version.cuda)
+print('cuda available', torch.cuda.is_available())
+if torch.cuda.is_available():
+    print('device', torch.cuda.get_device_name(0))
+PY
+
+!nvcc --version
+!python -m pip install -v --no-build-isolation ./submodules/diff-gaussian-rasterization
+!python -m pip install -v --no-build-isolation ./submodules/simple-knn
+!python -m pip install -v --no-build-isolation ./submodules/fused-ssim || true
+```
+
+Then rerun the training cell. Keep `--disable_viewer` in the training command
+for notebook runs.
 
 ## References
 
