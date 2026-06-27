@@ -93,6 +93,11 @@ Acceptance test:
 
 Goal: produce a repeatable 3D model of a static room.
 
+Current blocker: repeated manual-push captures are not repeatable enough. The
+best smooth-arc manual capture produced a useful held-out GraphDECO result, but
+later manual repeats had much worse camera/lidar motion agreement. Controlled
+motorized motion is now required before spending more time on room captures.
+
 Capture protocol:
 
 - good, steady lighting;
@@ -111,9 +116,34 @@ Initial success criteria:
 
 These thresholds are engineering targets, not claimed A1M8 accuracy.
 
+## Milestone 4A: Controlled Motorized Motion
+
+Goal: make the robot drive slowly and repeatably before attempting autonomous
+mapping.
+
+Deliverables:
+
+- soldered or pre-soldered TB6612 motor-driver wiring;
+- safe wheel-off-table motor smoke test;
+- one-second open-loop floor drive;
+- low-speed straight and shallow-arc commands;
+- motor command logs in the session manifest or experiment log.
+
+Acceptance test:
+
+- Pi does not reboot when motors run;
+- both motors can be stopped reliably from software and by the battery switch;
+- robot can drive a slow, boring, repeatable 18 to 24 inch path;
+- camera/lidar motion diagnostic is near the current best manual result
+  (`0.031 m` moving RMSE and `16.0 deg` median direction error).
+
 ## Milestone 5: Hallway Reconstruction
 
 Goal: extend the room pipeline to a long, visually repetitive environment.
+
+Autonomous hallway work should start only after controlled motorized room motion
+is repeatable. The 2D lidar will be used for obstacle avoidance and metric
+localization; the Pi camera provides visual reconstruction images.
 
 Before coding, run a failure analysis using the room logs. Likely additions are
 an IMU, wheeled cart, wheel odometry, markers, ROS 2 bagging, or a depth/stereo

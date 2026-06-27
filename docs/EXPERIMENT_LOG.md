@@ -2297,6 +2297,53 @@ engineering milestone should be controlled motorized motion with the TB6612, or
 an equivalent physical guide/track, so captures become repeatable and do not
 depend on hand-push smoothness.
 
+### Motorized Motion Software Prep
+
+After the manual-push captures failed to reproduce the best smooth-arc result,
+the project direction was clarified: the long-term goal is an autonomous robot
+that uses lidar and the Pi camera to navigate while capturing room and hallway
+data for 3D reconstruction. The next blocker is not GraphDECO training; it is
+controlled, repeatable robot motion.
+
+Added Pi-side scripts:
+
+```text
+pi/tb6612_motor_smoke_test.py
+pi/open_loop_drive_test.py
+```
+
+Added runbook:
+
+```text
+docs/MOTORIZED_MOTION_BRINGUP.md
+```
+
+Updated roadmap:
+
+```text
+docs/ROADMAP.md
+```
+
+The smoke-test script requires an explicit `--armed` flag, limits default PWM to
+0.25, turns `STBY` off in `finally`, and is intended only for a wheel-off-table
+bench test. The open-loop drive script also requires `--armed`, limits speed to
+`-0.5..+0.5`, and caps duration at 5 seconds.
+
+Local check:
+
+```text
+python -m py_compile pi/tb6612_motor_smoke_test.py pi/open_loop_drive_test.py
+```
+
+Result: pass for desktop-side syntax validation and documentation preparation.
+This has not been run on the Raspberry Pi because the current TB6612 breakout
+was glued rather than soldered. The scripts are ready for the pre-soldered
+TB6612 bring-up.
+
+Next action: when the pre-soldered TB6612 arrives, wire it according to
+`docs/MOTORIZED_MOTION_BRINGUP.md`, run the wheel-off-table smoke test, then
+run a one-second open-loop floor test before attempting any sensor capture.
+
 ### Lidar-height Target Retest After Camera Adjustment
 
 The camera and tape targets were physically adjusted, then session
