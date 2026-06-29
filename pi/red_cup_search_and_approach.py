@@ -119,6 +119,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--explore-forward-speed", type=bounded_unit, default=0.42)
     parser.add_argument("--reverse-left", action="store_true")
     parser.add_argument("--reverse-right", action="store_true")
+    parser.add_argument(
+        "--swap-steering",
+        action="store_true",
+        help=(
+            "Swap logical left/right steering commands when the physical motor "
+            "layout turns away from the camera target."
+        ),
+    )
 
     parser.add_argument("--center-deadband-px", type=int, default=100)
     parser.add_argument("--min-red-pixels", type=int, default=150)
@@ -228,16 +236,38 @@ def target_direction(target: Target, deadband_px: int) -> Direction:
     return "center"
 
 
-def spin_in_place(drive: Tb6612Drive, *, direction: Direction, speed: float) -> None:
+def command_direction(direction: Direction, *, swap_steering: bool) -> Direction:
+    """Map a camera-frame direction to the calibrated drivetrain direction."""
+    if not swap_steering or direction == "center":
+        return direction
+    return "right" if direction == "left" else "left"
+
+
+def spin_in_place(
+    drive: Tb6612Drive,
+    *,
+    direction: Direction,
+    speed: float,
+    swap_steering: bool = False,
+) -> None:
     """Rotate about the robot center as much as the TT drivetrain allows."""
+    direction = command_direction(direction, swap_steering=swap_steering)
     if direction == "left":
         drive.drive(-speed, speed)
     else:
         drive.drive(speed, -speed)
 
 
-def search_arc(drive: Tb6612Drive, *, direction: Direction, slow: float, fast: float) -> None:
+def search_arc(
+    drive: Tb6612Drive,
+    *,
+    direction: Direction,
+    slow: float,
+    fast: float,
+    swap_steering: bool = False,
+) -> None:
     """Use the known-good gentle arc behavior to recover a recently seen target."""
+    direction = command_direction(direction, swap_steering=swap_steering)
     if direction == "left":
         drive.drive(slow, fast)
     else:
@@ -250,9 +280,13 @@ def approach_target(
     target: Target,
 ) -> Direction:
     direction = target_direction(target, args.center_deadband_px)
-    if direction == "left":
+    motor_direction = command_direction(
+        direction,
+        swap_steering=args.swap_steering,
+    )
+    if motor_direction == "left":
         drive.drive(args.arc_slow, args.arc_fast)
-    elif direction == "right":
+    elif motor_direction == "right":
         drive.drive(args.arc_fast, args.arc_slow)
     else:
         drive.drive(args.forward_speed, args.forward_speed)
@@ -434,6 +468,7 @@ def main() -> int:
                         direction=memory.last_seen_direction,
                         slow=args.arc_slow,
                         fast=args.arc_fast,
+                        swap_steering=args.swap_steering,
                     )
                     sleep_with_safety(args.search_turn_pulse_s, emergency_stop)
                     drive.stop()
@@ -455,6 +490,7 @@ def main() -> int:
                         drive,
                         direction=memory.last_seen_direction,
                         speed=args.scan_turn_speed,
+                        swap_steering=args.swap_steering,
                     )
                     sleep_with_safety(args.search_turn_pulse_s, emergency_stop)
                     drive.stop()
@@ -491,6 +527,7 @@ def main() -> int:
                         drive,
                         direction=memory.last_seen_direction,
                         speed=args.scan_turn_speed,
+                        swap_steering=args.swap_steering,
                     )
                     sleep_with_safety(args.explore_turn_s, emergency_stop)
                 drive.stop()

@@ -192,6 +192,11 @@ period. This prevents the detector from inferring on every frame while the
 camera is rotating. The values can be changed with
 `--search-turn-pulse-s` and `--search-camera-settle-s`.
 
+If a positive camera error (`dir=right`) makes the robot turn away from the
+target, add `--swap-steering`. This preserves camera-frame directions in logs
+while swapping the left/right drivetrain command. Verify calibration by
+checking that the magnitude of `error_x` decreases after a steering command.
+
 For a diagnostic scan, add `--save-search-frames`. Every sampled camera image,
 annotated detector image, and detector JSON file is then preserved under
 `~/sensor-tests/red-cup-search-frames/`. Without this option, the normal debug
@@ -268,6 +273,7 @@ should be used deliberately:
 | robot is too fast | motor speed too high | lower `--forward-speed`, but keep above stall threshold |
 | no red target found | threshold/lighting issue | inspect `~/sensor-tests/red-cup-continuous-detection.jpg` |
 | scan rotates the wrong way | drivetrain polarity or scan direction mismatch | rerun with `--scan-direction left` |
+| `dir=right` moves the target farther right | physical motor-side mapping is reversed | add `--swap-steering` |
 | scan turn stalls one wheel | in-place turn speed below stall threshold | try `--scan-turn-speed 0.62` |
 | scan passes the cup without detecting it | camera is moving or scan steps are too large | use the turn-stop-capture controller; reduce `--search-turn-pulse-s` |
 | exploration feels unsafe | open-loop moves are too long | lower `--max-explore-moves`, omit `--allow-explore`, or reduce `--explore-forward-s` |

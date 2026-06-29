@@ -2942,6 +2942,57 @@ as the cup was only beginning to enter the field of view. The next test should
 retain the detector thresholds and increase `--scan-max-s`/`--max-run-s` so the
 following frames contain the complete cup.
 
+### Follow-up: Full-cup frames expose detector limitation
+
+The longer scan preserved 43 observations. The red cup is partially visible in
+step 39, fully visible and near the image center in steps 40 through 42, and
+partially visible again in step 43. Despite the clear views, the 2018 SSD
+MobileNet model produced no `cup` proposal:
+
+- step 39: `refrigerator`, best score `0.449`;
+- step 40: `traffic light`, best score `0.426`;
+- step 41: `refrigerator`, best score `0.574`;
+- step 42: `refrigerator`/`traffic light`, best score `0.402`/`0.379`;
+- step 43: no object proposals.
+
+The red-mask measurements were healthy (`2199..4420` red pixels), so the
+failure occurs in object classification before the red-within-cup filter. The
+class allowlist should not be weakened to accept `traffic light` or
+`refrigerator`; doing so would reintroduce arbitrary-target pursuit. The next
+experiment is offline inference on these archived frames with the stronger
+EfficientDet-Lite0 COCO detector.
+
+### Follow-up: EfficientDet plus controlled red fallback room scan
+
+The post-processed EfficientDet-Lite0 model was run at confidence `0.07` with
+`cup,bottle` target aliases and the controlled red-component fallback. The
+robot scanned until step 25 (`26.7 s`), then acquired the target. Subsequent
+observations included genuine detector selections labelled both `cup` and
+`bottle`, plus occasional red-component fallback selections.
+
+Measured progress from terminal output:
+
+- first acquisition: front lidar about `1.532 m`, `1828` red pixels;
+- later accepted observations: up to `9553` red pixels;
+- final reported front lidar distances: approximately `0.97..1.11 m`;
+- no lidar safety stop or stale-stream event;
+- run stopped normally at the `60 s` maximum duration.
+
+Result: partial pass. Search, target acquisition, continuous lidar safety, and
+forward progress all operated together on real hardware. The robot did not
+reach the `0.254 m` stop threshold. The target repeatedly drifted toward the
+right image edge and was lost/recovered, so the physical steering direction
+and strength must be confirmed before merely extending runtime. No physical
+path observation was provided with the terminal log.
+
+The user subsequently confirmed that steering mapping should be corrected and
+that scan increments were physically too small. The controller now provides
+`--swap-steering`, which swaps left/right motor steering while leaving camera
+directions and logs unchanged. The next Pi run will also increase the stopped
+scan turn pulse from `0.15 s` to `0.30 s`. Success requires positive/right
+`error_x` values to decrease after `dir=right` commands and scan rotations to be
+visibly larger without camera-motion blur.
+
 ## Template
 
 ### Experiment ID
