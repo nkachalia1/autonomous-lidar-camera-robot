@@ -20,6 +20,7 @@ Run scan-only first, then enable exploration once the in-place search works.
 from __future__ import annotations
 
 import argparse
+import shutil
 import signal
 import subprocess
 import sys
@@ -196,6 +197,14 @@ def parse_args() -> argparse.Namespace:
         help="Maximum exploratory moves after failed scans.",
     )
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument(
+        "--save-search-frames",
+        action="store_true",
+        help=(
+            "Preserve each camera image, annotated detection image, and detector "
+            "JSON under OUTPUT_DIR/red-cup-search-frames."
+        ),
+    )
     args = parser.parse_args()
 
     if not args.armed and not args.detect_only:
@@ -259,6 +268,23 @@ def sleep_with_safety(duration_s: float, emergency_stop: threading.Event) -> Non
 def front_snapshot(state: FrontDistanceState) -> tuple[float | None, float]:
     closest_m, last_update_s, _ = state.snapshot()
     return closest_m, last_update_s
+
+
+def archive_search_frame(args: argparse.Namespace, *, step: int) -> None:
+    """Preserve one search observation instead of overwriting the debug files."""
+    if not args.save_search_frames:
+        return
+
+    archive_dir = args.output_dir / "red-cup-search-frames"
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    sources = {
+        "camera.jpg": args.output_dir / "red-cup-continuous.jpg",
+        "detection.jpg": args.output_dir / "red-cup-continuous-detection.jpg",
+        "detection.json": args.output_dir / "red-cup-continuous-detection.json",
+    }
+    for suffix, source in sources.items():
+        if source.exists():
+            shutil.copy2(source, archive_dir / f"step-{step:03d}-{suffix}")
 
 
 def main() -> int:
@@ -375,6 +401,7 @@ def main() -> int:
                     break
 
             target = detect_red_target(args)
+            archive_search_frame(args, step=step)
             if emergency_stop.is_set():
                 break
 

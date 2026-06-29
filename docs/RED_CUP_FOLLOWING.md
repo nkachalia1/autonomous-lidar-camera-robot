@@ -192,6 +192,11 @@ period. This prevents the detector from inferring on every frame while the
 camera is rotating. The values can be changed with
 `--search-turn-pulse-s` and `--search-camera-settle-s`.
 
+For a diagnostic scan, add `--save-search-frames`. Every sampled camera image,
+annotated detector image, and detector JSON file is then preserved under
+`~/sensor-tests/red-cup-search-frames/`. Without this option, the normal debug
+files are overwritten and describe only the final sampled frame.
+
 ## Step 3: COCO SSD Cup Detection + Red Filter
 
 The first red-cup follower could chase any red object. The improved behavior can

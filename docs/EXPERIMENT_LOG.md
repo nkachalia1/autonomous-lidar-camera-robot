@@ -2915,6 +2915,20 @@ This narrows the next checks to two independent issues:
    may be causing camera motion blur, in which case search should become a
    turn-stop-settle-capture sequence rather than infer while rotating.
 
+### Follow-up: Stepped scan after drivetrain repair
+
+After repairing a disconnected motor-switch wire and replacing/reseating the
+right `BIN2` signal path, both wheels passed forward and reverse tests. Commit
+`8898b21` was pulled onto the Pi and the new turn-stop-settle-capture search was
+run with `0.25 s` turn pulses and `0.20 s` settling. Thirteen scan observations
+were taken before the scan timeout. Lidar remained live and the run stopped
+safely, but no accepted cup detection was reported.
+
+The previous single debug image was overwritten on every observation, so this
+run cannot prove whether the cup crossed the camera frame between samples or
+was visible but rejected. The next diagnostic adds optional per-step image and
+JSON preservation via `--save-search-frames`.
+
 ## Template
 
 ### Experiment ID
