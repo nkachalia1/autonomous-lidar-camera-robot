@@ -2810,7 +2810,7 @@ scp pi\red_cup_follow_continuous.py pi\red_cup_search_and_approach.py pi\setup_c
 
 bash ~/setup_coco_ssd_tflite.sh
 
-python3 ~/red_cup_search_and_approach.py \
+~/fuse-venv/bin/python ~/red_cup_search_and_approach.py \
   --armed \
   --detector-model ~/models/coco_ssd_mobilenet_v1/detect.tflite \
   --detector-labels ~/models/coco_ssd_mobilenet_v1/labelmap.txt
@@ -2818,7 +2818,9 @@ python3 ~/red_cup_search_and_approach.py \
 
 ### Measurements
 
-- desktop validation: pending syntax check after implementation;
+- desktop validation: Python syntax check passed after implementation;
+- Pi setup note: Bookworm apt did not provide `python3-tflite-runtime`, so the
+  setup helper now falls back to `~/fuse-venv` plus pip/piwheels;
 - hardware validation: pending user run on Raspberry Pi;
 - real captured sensor data: pending.
 

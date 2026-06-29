@@ -214,10 +214,14 @@ Install the TFLite runtime and download the COCO SSD MobileNet model:
 bash ~/setup_coco_ssd_tflite.sh
 ```
 
+If apt does not provide `python3-tflite-runtime`, the helper creates a local
+virtual environment at `~/fuse-venv` and installs `tflite-runtime` there. In
+that case, use `~/fuse-venv/bin/python` for detector-enabled runs.
+
 Run search-and-approach with the object detector integrated:
 
 ```bash
-python3 ~/red_cup_search_and_approach.py \
+~/fuse-venv/bin/python ~/red_cup_search_and_approach.py \
   --armed \
   --detector-model ~/models/coco_ssd_mobilenet_v1/detect.tflite \
   --detector-labels ~/models/coco_ssd_mobilenet_v1/labelmap.txt
@@ -235,7 +239,7 @@ instead of falling back to red-only behavior. Red-only fallback is available but
 should be used deliberately:
 
 ```bash
-python3 ~/red_cup_search_and_approach.py \
+~/fuse-venv/bin/python ~/red_cup_search_and_approach.py \
   --armed \
   --detector-model ~/models/coco_ssd_mobilenet_v1/detect.tflite \
   --detector-labels ~/models/coco_ssd_mobilenet_v1/labelmap.txt \
