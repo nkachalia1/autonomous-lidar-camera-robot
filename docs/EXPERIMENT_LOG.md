@@ -2839,6 +2839,82 @@ Implementation in progress. The controller now supports:
 Copy files to the Pi, install the TFLite runtime/model with the setup helper,
 and run the detector-integrated search-and-approach command.
 
+## 2026-06-29 COCO SSD integrated search first hardware run
+
+### Experiment ID
+
+`2026-06-29-coco-search-first-hardware-run`
+
+### Hypothesis
+
+COCO SSD MobileNet plus the red-within-cup-box filter should select the red cup
+instead of arbitrary red objects, while scan/recovery motor commands rotate the
+robot enough to keep or reacquire the target.
+
+### Setup
+
+- Raspberry Pi OS Lite Legacy 64-bit (Debian 12 Bookworm), Python 3.11;
+- TensorFlow Lite runtime `2.14.0` in `~/fuse-venv`;
+- COCO SSD MobileNet v1 quantized model;
+- continuous RPLIDAR front-sector watchdog;
+- stop distance `0.254 m`;
+- maximum run time `30 s`;
+- motor defaults: left trim `0.95`, right trim `0.85`, forward `0.48`,
+  arc `0.52/0.60`, scan turn `0.58`.
+
+### Commands
+
+```text
+~/fuse-venv/bin/python ~/red_cup_search_and_approach.py \
+  --armed \
+  --detector-model ~/models/coco_ssd_mobilenet_v1/detect.tflite \
+  --detector-labels ~/models/coco_ssd_mobilenet_v1/labelmap.txt \
+  --stop-distance-m 0.254 \
+  --max-run-s 30
+```
+
+### Measurements
+
+- TensorFlow Lite XNNPACK initialized successfully;
+- multiple accepted observations reported
+  `source=detector label=cup`;
+- lidar remained live with front distances around `1.10..1.24 m` and no safety
+  stop;
+- controller transitioned through `SCAN`, `APPROACH`, and `RECOVER` as designed;
+- the wheels turned slowly, but the chassis did not make useful floor motion;
+- run ended normally at the 30-second limit.
+
+### Result
+
+Partial pass. Detector integration and lidar safety were validated on the real
+Pi hardware. Chassis search/approach motion failed the useful-motion criterion.
+The current scan command becomes approximately `0.55` left and `0.49` right PWM
+after trims, which may be below the loaded drivetrain's floor breakaway point.
+
+### Next Action
+
+Run a one-second open-loop floor test to separate drivetrain/power behavior from
+the perception loop. If it moves, repeat the integrated test with a higher
+`--scan-turn-speed` and higher arc speeds; if it does not move, inspect motor
+battery voltage, motor-output connections, wire drag, and caster/wheel binding.
+
+### Follow-up: Out-of-view scan at higher PWM
+
+The out-of-view scan was repeated with scan turn `0.72`, arc slow `0.60`, and
+arc fast `0.70`. The chassis rotated through changing lidar views, but only the
+left wheel turned during each commanded right scan; the right wheel did not
+turn backward. No target was accepted during the scan, even when the cup later
+entered the camera view, and the scan ended safely with
+`SEARCH_FINISHED_WITHOUT_TARGET`.
+
+This narrows the next checks to two independent issues:
+
+1. compare the right motor's forward and reverse behavior with the wheels
+   lifted, because a right scan explicitly commands that wheel backward;
+2. inspect the final detector JSON/image. Continuous rotation at the higher PWM
+   may be causing camera motion blur, in which case search should become a
+   turn-stop-settle-capture sequence rather than infer while rotating.
+
 ## Template
 
 ### Experiment ID

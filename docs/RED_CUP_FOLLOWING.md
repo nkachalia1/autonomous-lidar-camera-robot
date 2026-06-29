@@ -123,7 +123,8 @@ The robot should continue moving/searching until one of these happens:
 Once the direct follower works, the next behavior is:
 
 1. if the red cup is visible, approach it;
-2. if the red cup is not visible, rotate in place and scan with the camera;
+2. if the red cup is not visible, turn briefly, stop, let the camera settle, and
+   scan with the camera;
 3. if the cup appears during the scan, approach it;
 4. stop if lidar sees a close front obstacle.
 
@@ -185,6 +186,11 @@ Exploration is deliberately cautious:
 
 Use `--allow-explore` only on open floor. This is still not full SLAM or global
 path planning; it is a small measurable step toward autonomous search.
+
+Search defaults to `0.30 s` turn pulses and a `0.15 s` stopped-camera settling
+period. This prevents the detector from inferring on every frame while the
+camera is rotating. The values can be changed with
+`--search-turn-pulse-s` and `--search-camera-settle-s`.
 
 ## Step 3: COCO SSD Cup Detection + Red Filter
 
@@ -258,6 +264,7 @@ should be used deliberately:
 | no red target found | threshold/lighting issue | inspect `~/sensor-tests/red-cup-continuous-detection.jpg` |
 | scan rotates the wrong way | drivetrain polarity or scan direction mismatch | rerun with `--scan-direction left` |
 | scan turn stalls one wheel | in-place turn speed below stall threshold | try `--scan-turn-speed 0.62` |
+| scan passes the cup without detecting it | camera is moving or scan steps are too large | use the turn-stop-capture controller; reduce `--search-turn-pulse-s` |
 | exploration feels unsafe | open-loop moves are too long | lower `--max-explore-moves`, omit `--allow-explore`, or reduce `--explore-forward-s` |
 | model import fails | TensorFlow Lite runtime missing | run `bash ~/setup_coco_ssd_tflite.sh` |
 | visible cup is ignored | confidence too strict or lighting poor | try `--detector-confidence 0.25` and improve lighting |

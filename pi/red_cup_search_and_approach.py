@@ -97,6 +97,24 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--arc-slow", type=bounded_unit, default=0.52)
     parser.add_argument("--arc-fast", type=bounded_unit, default=0.60)
     parser.add_argument("--scan-turn-speed", type=bounded_unit, default=0.58)
+    parser.add_argument(
+        "--search-turn-pulse-s",
+        type=positive_float,
+        default=0.30,
+        help=(
+            "Duration of each scan/recovery turn pulse before stopping for the "
+            "next camera frame. Default: 0.30."
+        ),
+    )
+    parser.add_argument(
+        "--search-camera-settle-s",
+        type=positive_float,
+        default=0.15,
+        help=(
+            "How long motors remain stopped before a scan/recovery camera "
+            "capture. Default: 0.15."
+        ),
+    )
     parser.add_argument("--explore-forward-speed", type=bounded_unit, default=0.42)
     parser.add_argument("--reverse-left", action="store_true")
     parser.add_argument("--reverse-right", action="store_true")
@@ -345,6 +363,17 @@ def main() -> int:
             step += 1
             now = time.monotonic()
             closest_m, _ = front_snapshot(front_state)
+
+            # Object detection was unreliable while the chassis rotated
+            # continuously.  Search therefore uses a deliberate
+            # turn-stop-settle-capture sequence.  Approach mode remains
+            # continuous once a target has been acquired.
+            if memory.mode in ("scan", "recover"):
+                drive.stop()
+                sleep_with_safety(args.search_camera_settle_s, emergency_stop)
+                if emergency_stop.is_set():
+                    break
+
             target = detect_red_target(args)
             if emergency_stop.is_set():
                 break
@@ -379,6 +408,8 @@ def main() -> int:
                         slow=args.arc_slow,
                         fast=args.arc_fast,
                     )
+                    sleep_with_safety(args.search_turn_pulse_s, emergency_stop)
+                    drive.stop()
                     continue
                 drive.stop()
                 memory.mode = "scan"
@@ -398,6 +429,8 @@ def main() -> int:
                         direction=memory.last_seen_direction,
                         speed=args.scan_turn_speed,
                     )
+                    sleep_with_safety(args.search_turn_pulse_s, emergency_stop)
+                    drive.stop()
                     continue
 
                 drive.stop()
