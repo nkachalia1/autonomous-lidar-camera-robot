@@ -2486,6 +2486,230 @@ Inspect `camera.jpg`, record the remaining system baseline, and run both sensors
 together for ten minutes while checking temperature, throttling, USB stability,
 and storage.
 
+## 2026-06-27 New rigid-ish rig 36best GraphDECO package
+
+### Experiment ID
+
+`2026-06-27-011901Z-36best-export`
+
+### Hypothesis
+
+The new lidar/camera layout, measured at approximately 4.75 inches vertical
+camera offset, 3.0 inches forward/back offset, and 0.2 inches lateral offset,
+should be good enough to produce a smoke-test GraphDECO / 3D Gaussian Splatting
+dataset from the best available 36-frame camera/lidar pose sample.
+
+### Setup
+
+- hardware and mount revision: lidar and Pi Camera v2 taped to a common base;
+  motors not used for this capture;
+- session: `20260627T011901Z`;
+- capture mode: `mounted_calibration`;
+- approximate extrinsics used:
+  - `camera-forward-m=-0.0762`;
+  - `camera-left-m=0.0051`;
+  - `camera-up-m=0.1207`;
+  - `lidar-angle-offset-deg=125`;
+- pose sample selected: `data/fusion/20260627T011901Z-camera-poses-36.json`.
+
+### Commands
+
+```text
+python reconstruction\render_sparse_fused_feature_map.py ^
+  %USERPROFILE%\Downloads\20260627T011901Z ^
+  --pose-json data\fusion\20260627T011901Z-camera-poses-36.json ^
+  --intrinsics config\camera_intrinsics_pi_camera_v2_1920x1080.yaml ^
+  --output data\fusion\20260627T011901Z-sparse-fused-feature-map-36best.svg ^
+  --json-output data\fusion\20260627T011901Z-sparse-fused-feature-map-36best.json ^
+  --ply-output data\fusion\20260627T011901Z-sparse-fused-feature-map-36best.ply ^
+  --min-lidar-step-m 0.01
+
+python reconstruction\export_colmap_camera_poses.py ^
+  %USERPROFILE%\Downloads\20260627T011901Z ^
+  --pose-json data\fusion\20260627T011901Z-camera-poses-36.json ^
+  --intrinsics config\camera_intrinsics_pi_camera_v2_1920x1080.yaml ^
+  --points-json data\fusion\20260627T011901Z-sparse-fused-feature-map-36best.json ^
+  --output-dir data\exports\colmap\20260627T011901Z-36best-undistorted ^
+  --undistort-images ^
+  --image-width 1920 ^
+  --jpeg-quality 95
+
+python reconstruction\check_graphdeco_input.py ^
+  data\exports\colmap\20260627T011901Z-36best-undistorted ^
+  --json-output data\exports\colmap\20260627T011901Z-36best-undistorted\graphdeco_input_check.json
+
+python reconstruction\package_graphdeco_dataset.py ^
+  data\exports\colmap\20260627T011901Z-36best-undistorted ^
+  --output data\exports\gaussian-splatting\20260627T011901Z-36best-undistorted-graphdeco.zip
+```
+
+### Measurements
+
+- raw session validation: camera and lidar timestamps internally consistent;
+- ICP path length: `0.586 m` against a nominal 24 inch / `0.6096 m` traverse;
+- camera/lidar motion check for 36 samples:
+  - successful visual-motion pairs: `27/35`;
+  - median pose inliers: `265`;
+  - moving alignment RMSE: `0.036 m`;
+  - median direction error: `30.8 deg`;
+  - selected camera candidate: `z_forward_x_left`;
+- sparse fused feature map:
+  - accepted sparse 3D points: `3237`;
+  - pairs with accepted points: `20/35`;
+  - median reprojection error: `1.58 px`;
+  - median triangulation angle: `0.58 deg`;
+- GraphDECO package:
+  - images: `36`;
+  - sparse points: `3237`;
+  - ZIP: `data/exports/gaussian-splatting/20260627T011901Z-36best-undistorted-graphdeco.zip`;
+  - ZIP size: `7,598,340 bytes`;
+  - readiness check: pass.
+
+### Result
+
+Pass for a Colab / 3DGS smoke-test package. The dataset is not final-quality:
+the motion direction error is still borderline and COLMAP feature-track
+references are synthetic/absent, so the expected splat quality may be weak.
+This package is useful for testing whether the new rig can produce a complete
+training run.
+
+### Next Action
+
+Upload `20260627T011901Z-36best-undistorted-graphdeco.zip` to Colab and train an
+eval 3DGS run. Compare held-out render metrics with the previous best
+`20260626T041136Z-60stable` run.
+
+### 36best GraphDECO 7,000-iteration Held-out Validation
+
+The `20260627T011901Z-36best-undistorted-graphdeco.zip` package was uploaded to
+Colab and trained with GraphDECO `--eval` for 7,000 iterations at
+`--resolution 4`. The downloaded model and render bundles were imported to:
+
+```text
+data/exports/gaussian-splatting/20260627T011901Z-36best-undistorted-graphdeco-eval-iter7000.zip
+data/exports/gaussian-splatting/20260627T011901Z-36best-undistorted-graphdeco-eval-iter7000-render-views.zip
+```
+
+The eval render bundle contained 31 train views and 5 held-out test views.
+
+Train-view comparison:
+
+- frame count: `31`;
+- mean/median MAE: `3.167/2.999` image gray levels;
+- mean/median PSNR: `31.738/31.203 dB`.
+
+Held-out test-view comparison:
+
+- frame count: `5`;
+- mean/median MAE: `10.142/10.017` image gray levels;
+- mean/median PSNR: `21.722/21.751 dB`.
+
+3DGS point-cloud preview:
+
+- vertices: `171384`;
+- bounds: `x -0.391..+3.353 m`, `y -1.040..+0.626 m`,
+  `z -0.504..+0.577 m`;
+- opacity min/median/max: `0.120/0.120/0.950`.
+
+Compared with the previous best smooth-arc `20260626T041136Z-60stable`
+held-out validation:
+
+- held-out median MAE improved from `10.692` to `10.017`;
+- held-out median PSNR improved from `20.399 dB` to `21.751 dB`;
+- train median PSNR improved from `29.596 dB` to `31.203 dB`.
+
+Result: pass, and the new best held-out score so far. This is still not
+production-quality reconstruction because the camera/lidar motion diagnostic had
+a borderline `30.8 deg` median direction error and the sparse seed has weak
+triangulation, but the new rigid-ish setup produced a measurable improvement.
+
+Next action: visually inspect the held-out contact sheet. If the renders look
+reasonable, repeat this capture procedure with the final motorized mount and a
+slower, smoother autonomous or guided path.
+
+## 2026-06-28 Red cup following with continuous lidar safety
+
+### Experiment ID
+
+`2026-06-28-red-cup-follow-continuous-lidar`
+
+### Hypothesis
+
+If the robot keeps the RPLIDAR motor running continuously while using the Pi
+Camera to detect a red cup, then it should be able to drive toward the cup and
+stop when the front lidar sector reaches the configured obstacle distance.
+
+### Setup
+
+- hardware and mount revision: untethered Pi power bank, separate motor battery,
+  TB6612 motor driver, RPLIDAR A1M8, Pi Camera v2;
+- motor wiring: TB6612 A-side left motor, B-side right motor;
+- left motor wire was found loose during testing and reseated;
+- lidar front sector calibrated with a front object:
+  - `FRONT_CENTER_DEG=85`;
+  - `FRONT_HALF_WIDTH_DEG=20`;
+- motor/controller values used in the successful run:
+  - `LEFT_TRIM=0.95`;
+  - `RIGHT_TRIM=0.85`;
+  - `FORWARD_SPEED=0.48`;
+  - `ARC_SLOW=0.52`;
+  - `ARC_FAST=0.60`;
+  - `STOP_DISTANCE_M=0.203`.
+
+### Commands
+
+The first successful prototype ran from home-directory scripts. The result has
+now been preserved as project files:
+
+```text
+pi/lidar_front_stream.cpp
+pi/red_cup_follow_continuous.py
+docs/RED_CUP_FOLLOWING.md
+```
+
+Expected Pi build/run commands:
+
+```text
+g++ -std=c++17 -O2 -Wall -Wextra \
+  -I/home/pi5/rplidar_sdk/sdk/include \
+  -I/home/pi5/rplidar_sdk/sdk/src \
+  ~/fuse-recorder/lidar_front_stream.cpp \
+  /home/pi5/rplidar_sdk/output/Linux/Release/libsl_lidar_sdk.a \
+  -lpthread -lrt \
+  -o ~/fuse-recorder/build/lidar_front_stream
+
+python3 ~/red_cup_follow_continuous.py --armed
+```
+
+### Measurements
+
+- camera/lidar/motor power-bank test: `throttled=0x0`;
+- 60-second camera/lidar power-bank test passed:
+  - camera status: `0`;
+  - lidar timeout status: `124` as expected;
+  - lidar error log: `0` bytes;
+- red cup continuous follow run:
+  - lidar stayed continuously spinning;
+  - robot followed/search-steered toward the red cup;
+  - safety stop triggered when front distance reached `0.175 m`;
+  - configured stop distance was `0.203 m`;
+  - physical stop distance was approximately `6.9 in` due to coasting.
+
+### Result
+
+Pass. This is the first complete untethered autonomy behavior in the project:
+the robot used camera perception for target direction, lidar for continuous
+front safety, and motor commands for motion.
+
+This does not replace the 3D reconstruction pipeline. It provides the controlled
+motion foundation needed for future repeatable room and hallway captures.
+
+### Next Action
+
+Run the repo-owned version on the Pi, confirm it matches the prototype behavior,
+then keep the 8 inch stop distance as the default until motor response and the
+physical mount are more repeatable.
+
 ## Template
 
 ### Experiment ID
