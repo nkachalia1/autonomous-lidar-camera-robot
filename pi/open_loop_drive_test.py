@@ -77,8 +77,8 @@ class Tb6612Motor:
 
 def bounded_speed(value: str) -> float:
     parsed = float(value)
-    if not -0.5 <= parsed <= 0.5:
-        raise argparse.ArgumentTypeError("speed must be between -0.5 and +0.5")
+    if not -0.8 <= parsed <= 0.8:
+        raise argparse.ArgumentTypeError("speed must be between -0.8 and +0.8")
     return parsed
 
 
@@ -99,16 +99,26 @@ def main() -> int:
         help="Required safety acknowledgement.",
     )
     parser.add_argument(
+        "--motor-a-speed",
         "--left-speed",
+        dest="motor_a_speed",
         type=bounded_speed,
         required=True,
-        help="Left motor speed from -0.5 to +0.5.",
+        help=(
+            "TB6612 Motor A speed from -0.8 to +0.8. "
+            "The legacy alias --left-speed is retained for compatibility."
+        ),
     )
     parser.add_argument(
+        "--motor-b-speed",
         "--right-speed",
+        dest="motor_b_speed",
         type=bounded_speed,
         required=True,
-        help="Right motor speed from -0.5 to +0.5.",
+        help=(
+            "TB6612 Motor B speed from -0.8 to +0.8. "
+            "The legacy alias --right-speed is retained for compatibility."
+        ),
     )
     parser.add_argument(
         "--duration-s",
@@ -141,10 +151,11 @@ def main() -> int:
         print("Starting in 2 seconds. Keep one hand near the motor-battery switch.")
         time.sleep(2.0)
         stby.on()
-        left.drive(args.left_speed)
-        right.drive(args.right_speed)
+        left.drive(args.motor_a_speed)
+        right.drive(args.motor_b_speed)
         print(
-            f"Driving left={args.left_speed:+.2f}, right={args.right_speed:+.2f} "
+            f"Driving motor_a={args.motor_a_speed:+.2f}, "
+            f"motor_b={args.motor_b_speed:+.2f} "
             f"for {args.duration_s:.1f}s"
         )
         time.sleep(args.duration_s)

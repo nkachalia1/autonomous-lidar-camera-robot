@@ -3018,6 +3018,28 @@ acts as the physical left wheel on this build, therefore received the weaker
 `0.53`. The controller now swaps trim assignments together with steering so
 the physical left side receives `left_trim=0.95`.
 
+### Follow-up: Physical-left wheel remains below reliable floor torque
+
+The Pi pulled the trim-swap revision and confirmed it at startup with
+`motor_a_trim=0.85 motor_b_trim=0.95`. During a 15-second search-and-approach
+test, room scanning, target acquisition, recovery, and camera steering all
+ran, but the user observed that the physical left wheel still barely spun
+compared with the physical right wheel.
+
+For a centered command at `forward_speed=0.62`, the controller requested
+approximately `0.527` PWM on Motor A and `0.589` PWM on Motor B after trims.
+The result therefore rejects the hypothesis that swapping trims alone was
+enough. The remaining likely causes are a higher loaded breakaway threshold on
+the physical-left drivetrain, an incorrect Motor A/B-to-physical-side
+assumption, or an intermittent/mechanical problem on that side.
+
+The open-loop floor diagnostic now names the electrical channels explicitly as
+`--motor-a-speed` and `--motor-b-speed` and permits short tests through `0.8`
+PWM. The next test should reproduce `A=0.53, B=0.59` for one second, identify
+the physical side driven by each channel, and then raise only the weak side to
+`0.70`. Autonomous pursuit should remain paused until both wheels start
+reliably and the chassis tracks approximately straight.
+
 ## Template
 
 ### Experiment ID
