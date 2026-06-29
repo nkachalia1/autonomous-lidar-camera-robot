@@ -2710,6 +2710,133 @@ Run the repo-owned version on the Pi, confirm it matches the prototype behavior,
 then keep the 8 inch stop distance as the default until motor response and the
 physical mount are more repeatable.
 
+## 2026-06-28 Red cup search before approach
+
+### Experiment ID
+
+`2026-06-28-red-cup-search-and-approach`
+
+### Hypothesis
+
+If the robot cannot see the red cup at startup, it should be able to rotate in
+place while keeping continuous lidar safety active, locate the cup with the Pi
+Camera, and then reuse the known-good approach behavior. If a full scan fails,
+the robot should stop safely unless exploratory movement is explicitly enabled.
+
+### Setup
+
+- hardware and mount revision: same untethered robot as the continuous red-cup
+  follower;
+- lidar front sector: `85 deg` center, `20 deg` half width;
+- stop distance: `0.203 m`;
+- motor trims: left `0.95`, right `0.85`;
+- new repo file: `pi/red_cup_search_and_approach.py`;
+- supporting repo file: `pi/red_cup_follow_continuous.py`.
+
+### Commands
+
+Ready for the Raspberry Pi:
+
+```text
+scp pi\red_cup_follow_continuous.py pi\red_cup_search_and_approach.py pi5@pi5.local:/home/pi5/
+
+python3 ~/red_cup_search_and_approach.py --armed
+```
+
+Exploratory search is intentionally gated behind an additional flag:
+
+```text
+python3 ~/red_cup_search_and_approach.py --armed --allow-explore --max-explore-moves 3
+```
+
+### Measurements
+
+- desktop validation: Python syntax check only;
+- hardware validation: pending user run on Raspberry Pi;
+- real captured sensor data: pending.
+
+### Result
+
+Ready for hardware test. Not yet validated on the robot.
+
+The implementation preserves the known-good continuous follower and adds a
+separate staged controller:
+
+- scan-only mode by default;
+- approach when the cup is detected;
+- short recovery turns when the cup is temporarily lost;
+- optional short exploratory moves only with `--allow-explore`;
+- same continuous lidar stale-data and obstacle watchdog.
+
+### Next Action
+
+Run scan-only mode first with the cup outside the starting camera view. Confirm
+that the robot rotates, finds the cup, approaches, and stops on lidar. Only then
+enable `--allow-explore`.
+
+## 2026-06-28 COCO SSD red-cup target filter
+
+### Experiment ID
+
+`2026-06-28-coco-ssd-red-cup-filter`
+
+### Hypothesis
+
+If the camera target selector first detects `cup` boxes with a COCO SSD
+MobileNet TensorFlow Lite model, then filters those cup boxes for red pixels,
+the robot should stop chasing arbitrary red objects and only approach a red
+object that the model also recognizes as a cup.
+
+### Setup
+
+- hardware: Raspberry Pi 5, standard Pi Camera Module v2, RPLIDAR A1M8, TB6612
+  motor driver;
+- perception method: TensorFlow Lite object detection on the Pi CPU;
+- model helper: `pi/setup_coco_ssd_tflite.sh`;
+- controller files:
+  - `pi/red_cup_follow_continuous.py`;
+  - `pi/red_cup_search_and_approach.py`.
+
+The Raspberry Pi AI Camera / `rpicam-detect` path was considered, but the
+current hardware is the Camera Module v2, not the IMX500 AI Camera. Therefore
+the implemented path is standard Pi Camera plus TensorFlow Lite.
+
+### Commands
+
+Ready for the Raspberry Pi:
+
+```text
+scp pi\red_cup_follow_continuous.py pi\red_cup_search_and_approach.py pi\setup_coco_ssd_tflite.sh pi5@pi5.local:/home/pi5/
+
+bash ~/setup_coco_ssd_tflite.sh
+
+python3 ~/red_cup_search_and_approach.py \
+  --armed \
+  --detector-model ~/models/coco_ssd_mobilenet_v1/detect.tflite \
+  --detector-labels ~/models/coco_ssd_mobilenet_v1/labelmap.txt
+```
+
+### Measurements
+
+- desktop validation: pending syntax check after implementation;
+- hardware validation: pending user run on Raspberry Pi;
+- real captured sensor data: pending.
+
+### Result
+
+Implementation in progress. The controller now supports:
+
+- detector-first target selection;
+- `cup` label filtering;
+- red-pixel filtering inside the cup box;
+- optional red-blob fallback with `--fallback-to-red-blob`;
+- debug JSON with selected detection and rejected boxes.
+
+### Next Action
+
+Copy files to the Pi, install the TFLite runtime/model with the setup helper,
+and run the detector-integrated search-and-approach command.
+
 ## Template
 
 ### Experiment ID

@@ -118,6 +118,130 @@ The robot should continue moving/searching until one of these happens:
 - the user presses `Ctrl+C`;
 - the lidar stream becomes stale.
 
+## Step 2: Search, Then Approach
+
+Once the direct follower works, the next behavior is:
+
+1. if the red cup is visible, approach it;
+2. if the red cup is not visible, rotate in place and scan with the camera;
+3. if the cup appears during the scan, approach it;
+4. stop if lidar sees a close front obstacle.
+
+Copy both Python files to the Pi because the search controller imports the
+known-good motor, camera, and lidar helpers from `red_cup_follow_continuous.py`:
+
+```powershell
+scp pi\red_cup_follow_continuous.py pi\red_cup_search_and_approach.py pi5@pi5.local:/home/pi5/
+```
+
+Run scan-only mode first. Put the red cup outside the camera view but inside the
+room, leave at least 3 feet of clear floor around the robot, turn the motor
+battery on, and keep one hand near the switch.
+
+```bash
+python3 ~/red_cup_search_and_approach.py --armed
+```
+
+Expected scan-only behavior:
+
+```text
+Waiting for lidar stream...
+Red cup search-and-approach. mode=scan; stop distance=0.203 m.
+1: SCAN front=0.75 turn=right elapsed=0.0s
+...
+7: APPROACH front=0.68 error_x=140.0 red_pixels=5200 dir=right
+...
+SAFETY STOP: front=0.18 m <= 0.203 m
+STOP_CONDITION_REACHED
+```
+
+If the robot scans for about 18 seconds and never sees the cup, it stops with:
+
+```text
+SCAN_FAILED_NO_TARGET: enable --allow-explore for step 2
+SEARCH_FINISHED_WITHOUT_TARGET
+```
+
+That is a safe failure. It means the camera did not detect the cup from the
+starting pose.
+
+Only after scan-only mode works should exploratory moves be enabled:
+
+```bash
+python3 ~/red_cup_search_and_approach.py \
+  --armed \
+  --allow-explore \
+  --max-explore-moves 3
+```
+
+Exploration is deliberately cautious:
+
+- if the front lidar distance is at least `0.45 m`, the robot moves forward for
+  `0.60 s`, stops, and scans again;
+- if front distance is blocked, the robot turns in place and scans again;
+- the same lidar watchdog stops the robot at `0.203 m`;
+- the robot stops after the configured number of exploratory moves if it still
+  cannot find the cup.
+
+Use `--allow-explore` only on open floor. This is still not full SLAM or global
+path planning; it is a small measurable step toward autonomous search.
+
+## Step 3: COCO SSD Cup Detection + Red Filter
+
+The first red-cup follower could chase any red object. The improved behavior can
+use a TensorFlow Lite COCO SSD MobileNet model:
+
+1. detect object bounding boxes;
+2. keep only boxes labelled `cup`;
+3. require the selected cup box to contain enough red pixels;
+4. approach that cup while lidar stays in continuous safety mode.
+
+This is the right method for the current hardware: Raspberry Pi 5 plus standard
+Pi Camera Module v2. The official Raspberry Pi AI Camera is a different camera
+with a Sony IMX500 inference sensor; if we upgrade to that hardware later,
+`rpicam-detect` is worth revisiting. For the current camera, use TensorFlow Lite
+on the Pi CPU.
+
+Copy the updated controller and setup helper to the Pi:
+
+```powershell
+scp pi\red_cup_follow_continuous.py pi\red_cup_search_and_approach.py pi\setup_coco_ssd_tflite.sh pi5@pi5.local:/home/pi5/
+```
+
+Install the TFLite runtime and download the COCO SSD MobileNet model:
+
+```bash
+bash ~/setup_coco_ssd_tflite.sh
+```
+
+Run search-and-approach with the object detector integrated:
+
+```bash
+python3 ~/red_cup_search_and_approach.py \
+  --armed \
+  --detector-model ~/models/coco_ssd_mobilenet_v1/detect.tflite \
+  --detector-labels ~/models/coco_ssd_mobilenet_v1/labelmap.txt
+```
+
+Expected output now includes the detector source:
+
+```text
+7: APPROACH front=0.68 error_x=140.0 red_pixels=5200 source=detector label=cup dir=right
+```
+
+The robot should not chase a red object unless the object detector also labels
+that box as `cup`. If the model fails to find the cup, the robot scans or stops
+instead of falling back to red-only behavior. Red-only fallback is available but
+should be used deliberately:
+
+```bash
+python3 ~/red_cup_search_and_approach.py \
+  --armed \
+  --detector-model ~/models/coco_ssd_mobilenet_v1/detect.tflite \
+  --detector-labels ~/models/coco_ssd_mobilenet_v1/labelmap.txt \
+  --fallback-to-red-blob
+```
+
 ## Failure Modes
 
 | Symptom | Likely cause | Fix |
@@ -128,6 +252,13 @@ The robot should continue moving/searching until one of these happens:
 | robot stops too late | threshold too low / coasting | increase `--stop-distance-m` to `0.254` |
 | robot is too fast | motor speed too high | lower `--forward-speed`, but keep above stall threshold |
 | no red target found | threshold/lighting issue | inspect `~/sensor-tests/red-cup-continuous-detection.jpg` |
+| scan rotates the wrong way | drivetrain polarity or scan direction mismatch | rerun with `--scan-direction left` |
+| scan turn stalls one wheel | in-place turn speed below stall threshold | try `--scan-turn-speed 0.62` |
+| exploration feels unsafe | open-loop moves are too long | lower `--max-explore-moves`, omit `--allow-explore`, or reduce `--explore-forward-s` |
+| model import fails | TensorFlow Lite runtime missing | run `bash ~/setup_coco_ssd_tflite.sh` |
+| visible cup is ignored | confidence too strict or lighting poor | try `--detector-confidence 0.25` and improve lighting |
+| red object is detected but not approached | detector did not label it as `cup` | check `~/sensor-tests/red-cup-continuous-detection.json` |
+| wrong class labels | label map offset mismatch | try `--detector-label-offset 1` |
 
 ## Why This Matters for Reconstruction
 
