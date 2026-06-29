@@ -2929,6 +2929,19 @@ run cannot prove whether the cup crossed the camera frame between samples or
 was visible but rejected. The next diagnostic adds optional per-step image and
 JSON preservation via `--save-search-frames`.
 
+### Follow-up: Archived scan-frame inspection
+
+The per-step diagnostic scan preserved 28 observations. Step 27 did not contain
+the cup. In step 28, part of the red cup entered at the extreme right edge of
+the camera image. Its JSON reported `1875` total red pixels, but the only object
+proposal was a large `bed` box at `0.414` confidence; no `cup` proposal was
+available for the red-within-cup filter to accept.
+
+This is evidence that the camera scan reached the target direction but stopped
+as the cup was only beginning to enter the field of view. The next test should
+retain the detector thresholds and increase `--scan-max-s`/`--max-run-s` so the
+following frames contain the complete cup.
+
 ## Template
 
 ### Experiment ID
