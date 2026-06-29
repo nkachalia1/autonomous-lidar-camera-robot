@@ -340,9 +340,16 @@ def main() -> int:
         print(f"Debug JSON: {debug_json}")
         return 0
 
+    # On this chassis the steering test showed that Motor A/B correspond to
+    # the opposite physical sides.  When steering is swapped, swap the
+    # physical-side trim calibration as well; otherwise the physical left
+    # wheel receives the weaker right-side trim and stalls during straight
+    # approach.
+    motor_a_trim = args.right_trim if args.swap_steering else args.left_trim
+    motor_b_trim = args.left_trim if args.swap_steering else args.right_trim
     drive = Tb6612Drive(
-        left_trim=args.left_trim,
-        right_trim=args.right_trim,
+        left_trim=motor_a_trim,
+        right_trim=motor_b_trim,
         reverse_left=args.reverse_left,
         reverse_right=args.reverse_right,
     )
@@ -407,6 +414,11 @@ def main() -> int:
             "Red cup search-and-approach. "
             f"mode=scan{' + explore' if args.allow_explore else ''}; "
             f"stop distance={args.stop_distance_m:.3f} m."
+        )
+        print(
+            "Motor calibration: "
+            f"swap_steering={args.swap_steering} "
+            f"motor_a_trim={motor_a_trim:.2f} motor_b_trim={motor_b_trim:.2f}"
         )
         print(f"Initial front distance={closest_m}")
         print("Hand near the motor-battery switch. Starting in 2 seconds.")

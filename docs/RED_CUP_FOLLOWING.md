@@ -194,8 +194,10 @@ camera is rotating. The values can be changed with
 
 If a positive camera error (`dir=right`) makes the robot turn away from the
 target, add `--swap-steering`. This preserves camera-frame directions in logs
-while swapping the left/right drivetrain command. Verify calibration by
-checking that the magnitude of `error_x` decreases after a steering command.
+while swapping the left/right drivetrain command and physical-side trim
+assignments. Verify calibration by checking that the magnitude of `error_x`
+decreases after a steering command and that both wheels start during centered
+forward motion.
 
 For a diagnostic scan, add `--save-search-frames`. Every sampled camera image,
 annotated detector image, and detector JSON file is then preserved under

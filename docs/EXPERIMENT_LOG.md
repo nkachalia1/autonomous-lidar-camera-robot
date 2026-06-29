@@ -2993,6 +2993,31 @@ scan turn pulse from `0.15 s` to `0.30 s`. Success requires positive/right
 `error_x` values to decrease after `dir=right` commands and scan rotations to be
 visibly larger without camera-motion blur.
 
+### Follow-up: Swapped steering and larger scan pulses
+
+The Pi pulled commit `a35ecda` and ran a 90-second room scan with
+`--swap-steering` and `0.30 s` scan pulses. The robot repeatedly scanned,
+acquired the target, and changed image error from large left/right offsets
+toward the center. This validates the steering-map correction and visibly
+larger scan behavior.
+
+The loaded chassis did not drive reliably during centered approach. With
+`forward-speed=0.48`, one representative centered sequence changed lidar front
+distance only from about `0.481 m` to `0.472 m` across roughly ten observations.
+By contrast, the stronger `0.60/0.70` arc and `0.72` scan commands produced
+substantial pose changes. Result: forward PWM is below the repeatable floor
+breakaway threshold, while steering/scan torque is adequate. The next test
+should keep arc values unchanged and test straight speed `0.62` for only
+15 seconds with a conservative `0.35 m` stop distance.
+
+That short test acquired the centered target immediately, but the physical left
+wheel barely turned. The code review found that `--swap-steering` corrected
+turn direction without swapping the physical-side trim factors. Motor B, which
+acts as the physical left wheel on this build, therefore received the weaker
+`right_trim=0.85`; at `forward_speed=0.62` its effective PWM was only about
+`0.53`. The controller now swaps trim assignments together with steering so
+the physical left side receives `left_trim=0.95`.
+
 ## Template
 
 ### Experiment ID
