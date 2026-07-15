@@ -64,6 +64,8 @@ class SearchMemory:
     last_seen_s: float = 0.0
     scan_started_s: float = 0.0
     explore_count: int = 0
+    seen_streak: int = 0
+    lost_streak: int = 0
 
 
 def parse_args() -> argparse.Namespace:
@@ -129,6 +131,24 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument("--center-deadband-px", type=int, default=100)
+    parser.add_argument(
+        "--target-confirm-frames",
+        type=int,
+        default=2,
+        help=(
+            "Consecutive target detections required before leaving scan/recover "
+            "mode. Default: 2."
+        ),
+    )
+    parser.add_argument(
+        "--target-lost-frames",
+        type=int,
+        default=2,
+        help=(
+            "Consecutive missed target detections required before leaving "
+            "approach mode. Default: 2."
+        ),
+    )
     parser.add_argument("--min-red-pixels", type=int, default=150)
     parser.add_argument("--component-seed-min-pixels", type=int, default=20)
     parser.add_argument("--target-min-width-px", type=int, default=8)
@@ -231,6 +251,10 @@ def parse_args() -> argparse.Namespace:
         parser.error(f"lidar serial port does not exist: {args.port}")
     if args.max_explore_moves < 0:
         parser.error("--max-explore-moves must be >= 0")
+    if args.target_confirm_frames < 1:
+        parser.error("--target-confirm-frames must be >= 1")
+    if args.target_lost_frames < 1:
+        parser.error("--target-lost-frames must be >= 1")
     return args
 
 
@@ -462,6 +486,25 @@ def main() -> int:
                 if direction != "center":
                     memory.last_seen_direction = direction
                 memory.last_seen_s = now
+                memory.lost_streak = 0
+
+                # During scan/recovery, require repeat agreement before motion.
+                # A tape measure can briefly appear as a narrow yellow component
+                # near a frame edge; one frame is not enough evidence to drive.
+                if memory.mode != "approach":
+                    memory.seen_streak += 1
+                    if memory.seen_streak < args.target_confirm_frames:
+                        drive.stop()
+                        print(
+                            f"{step}: TARGET_CANDIDATE "
+                            f"{memory.seen_streak}/{args.target_confirm_frames} "
+                            f"error_x={target.error_x:.1f} "
+                            f"target_pixels={target.red_pixels} dir={direction}; "
+                            "holding still"
+                        )
+                        continue
+
+                memory.seen_streak = 0
                 memory.mode = "approach"
                 print(
                     f"{step}: APPROACH front={closest_m} "
@@ -472,8 +515,20 @@ def main() -> int:
                 continue
 
             if memory.mode == "approach":
+                memory.lost_streak += 1
+                if memory.lost_streak < args.target_lost_frames:
+                    drive.stop()
+                    print(
+                        f"{step}: target briefly lost "
+                        f"{memory.lost_streak}/{args.target_lost_frames}; "
+                        "holding still"
+                    )
+                    continue
                 memory.mode = "recover"
+                memory.lost_streak = 0
                 print(f"{step}: target lost -> RECOVER {memory.last_seen_direction}")
+
+            memory.seen_streak = 0
 
             if memory.mode == "recover":
                 if now - memory.last_seen_s <= args.lost_recover_s:

@@ -3101,3 +3101,20 @@ Pass, fail, or inconclusive. Include observed evidence.
 ### Next Action
 
 One small, testable follow-up.
+## 2026-07-15 — Yellow target confirmation and loss tolerance
+
+**Hypothesis:** The yellow tape-measure behavior oscillated because a single
+color-component detection immediately started steering, while one missed frame
+immediately began recovery.
+
+**Change:** `red_cup_search_and_approach.py` now requires two consecutive
+detections before it leaves scan/recovery mode, and it holds still for one
+missed frame during approach before recovery. Both values are exposed as
+`--target-confirm-frames` and `--target-lost-frames`.
+
+**Success criterion:** During a stationary target test, logs show
+`TARGET_CANDIDATE 1/2`, then `APPROACH`; an isolated missed frame shows
+`target briefly lost 1/2` rather than a recovery turn.
+
+**Status:** Windows syntax verification passed with `py_compile`; Pi hardware
+validation pending.

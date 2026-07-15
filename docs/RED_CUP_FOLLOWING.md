@@ -355,3 +355,10 @@ can:
 That is the missing foundation for later hallway/room captures. Once this
 motion becomes reliable, the same robot base can drive smoother trajectories
 for synchronized lidar/camera reconstruction sessions.
+### Stability controls
+
+The color-target search uses `--target-confirm-frames 2` and
+`--target-lost-frames 2` by default. This means the robot needs two consecutive
+yellow detections before moving, and one missed camera frame causes it to hold
+still rather than instantly turn away. Keep these defaults for tape-measure
+testing; reduce neither until the camera view is confirmed stable.
