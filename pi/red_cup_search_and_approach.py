@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Search for a red cup, approach it, and stop with lidar safety.
+"""Search for a color target, approach it, and stop with lidar safety.
 
 This is the next staged autonomy experiment after
 ``red_cup_follow_continuous.py``.
@@ -7,9 +7,9 @@ This is the next staged autonomy experiment after
 Behavior:
 
 1. keep the RPLIDAR front-sector stream alive continuously;
-2. look for a red cup using the Pi Camera;
-3. if the cup is not visible, rotate in place and keep scanning;
-4. when the cup is visible, approach it using the known-good follower logic;
+2. look for a color target using the Pi Camera;
+3. if the target is not visible, rotate in place and keep scanning;
+4. when the target is visible, approach it using the known-good follower logic;
 5. stop if the front lidar sector gets too close or the lidar stream goes stale;
 6. optionally, after a failed room scan, make short exploratory moves.
 
@@ -69,7 +69,7 @@ class SearchMemory:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Search for a red cup, approach it, and avoid front obstacles with "
+            "Search for a color target, approach it, and avoid front obstacles with "
             "continuous RPLIDAR safety."
         )
     )
@@ -81,7 +81,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--detect-only",
         action="store_true",
-        help="Capture one image, choose the red target, write debug files, and do not move.",
+        help="Capture one image, choose the configured color target, write debug files, and do not move.",
     )
     parser.add_argument("--port", default=DEFAULT_PORT)
     parser.add_argument("--baudrate", type=int, default=115200)
@@ -141,9 +141,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--image-width", type=int, default=640)
     parser.add_argument("--image-height", type=int, default=360)
     parser.add_argument("--camera-timeout-ms", type=int, default=300)
+    parser.add_argument("--color-target", choices=["red", "yellow"], default="red")
     parser.add_argument("--red-min", type=int, default=100)
     parser.add_argument("--red-green-ratio", type=float, default=1.45)
     parser.add_argument("--red-blue-ratio", type=float, default=1.45)
+    parser.add_argument("--yellow-red-min", type=int, default=90)
+    parser.add_argument("--yellow-green-min", type=int, default=80)
+    parser.add_argument("--yellow-blue-max", type=int, default=150)
+    parser.add_argument("--yellow-red-blue-ratio", type=float, default=1.25)
+    parser.add_argument("--yellow-green-blue-ratio", type=float, default=1.15)
     parser.add_argument("--detector-model", type=Path, default=None)
     parser.add_argument("--detector-labels", type=Path, default=None)
     parser.add_argument("--detector-target-labels", default="cup")
@@ -164,13 +170,13 @@ def parse_args() -> argparse.Namespace:
         "--lost-recover-s",
         type=positive_float,
         default=4.0,
-        help="How long to keep turning toward the last cup direction after losing it.",
+        help="How long to keep turning toward the last target direction after losing it.",
     )
     parser.add_argument(
         "--scan-direction",
         choices=["left", "right"],
         default="right",
-        help="Initial in-place scan direction when no cup has been seen.",
+        help="Initial in-place scan direction when no target has been seen.",
     )
     parser.add_argument(
         "--allow-explore",
@@ -411,7 +417,7 @@ def main() -> int:
         watchdog_thread.start()
 
         print(
-            "Red cup search-and-approach. "
+            f"{args.color_target.title()} target search-and-approach. "
             f"mode=scan{' + explore' if args.allow_explore else ''}; "
             f"stop distance={args.stop_distance_m:.3f} m."
         )
@@ -459,7 +465,7 @@ def main() -> int:
                 memory.mode = "approach"
                 print(
                     f"{step}: APPROACH front={closest_m} "
-                    f"error_x={target.error_x:.1f} red_pixels={target.red_pixels} "
+                    f"error_x={target.error_x:.1f} target_pixels={target.red_pixels} "
                     f"source={target.source} label={target.label} dir={direction}"
                 )
                 approach_target(drive, args, target)

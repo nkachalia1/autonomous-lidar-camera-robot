@@ -3040,6 +3040,27 @@ the physical side driven by each channel, and then raise only the weak side to
 `0.70`. Autonomous pursuit should remain paused until both wheels start
 reliably and the chassis tracks approximately straight.
 
+### Follow-up: Yellow tape-measure target mode added
+
+Hypothesis: a bright yellow tape measure can be acquired more reliably with a
+direct color-component detector than with a COCO object detector, because
+`tape measure` is not a dependable COCO class. The existing red-cup search
+controller was extended with `--color-target yellow` while leaving red as the
+default.
+
+Windows-side verification:
+
+- `pi/red_cup_follow_continuous.py` now builds a configurable RGB target mask;
+- `pi/red_cup_search_and_approach.py` exposes the yellow thresholds and prints
+  `target_pixels` during approach;
+- syntax check passed with `py_compile` for both Pi scripts.
+
+Pi-ready command sequence is documented in `docs/RED_CUP_FOLLOWING.md`.
+Hardware validation is still pending. Success requires the detect-only command
+to draw a green box around the yellow tape measure, followed by an armed
+scan-and-approach run whose logs show `source=yellow_component` and whose
+lidar safety stop triggers before contact.
+
 ## Template
 
 ### Experiment ID

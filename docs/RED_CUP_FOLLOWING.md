@@ -284,6 +284,64 @@ should be used deliberately:
 | red object is detected but not approached | detector did not label it as `cup` | check `~/sensor-tests/red-cup-continuous-detection.json` |
 | wrong class labels | label map offset mismatch | try `--detector-label-offset 1` |
 
+## Yellow Tape Measure Search
+
+The same search-and-approach controller can now use a simple yellow blob
+detector. This is better than COCO object detection for a yellow tape measure,
+because a tape measure is not a reliable COCO class.
+
+Copy the updated controller files to the Pi:
+
+```powershell
+scp pi\red_cup_follow_continuous.py pi\red_cup_search_and_approach.py pi5@pi5.local:/home/pi5/
+```
+
+Run a no-motion detection check first:
+
+```bash
+python3 ~/red_cup_search_and_approach.py \
+  --detect-only \
+  --color-target yellow \
+  --min-red-pixels 300
+```
+
+Expected result:
+
+```text
+TARGET_SELECTED cx=... cy=... error_x=... pixels=...
+```
+
+Inspect the debug image if needed:
+
+```text
+~/sensor-tests/red-cup-continuous-detection.jpg
+```
+
+Then run a cautious scan-and-approach test:
+
+```bash
+python3 ~/red_cup_search_and_approach.py \
+  --armed \
+  --swap-steering \
+  --color-target yellow \
+  --min-red-pixels 300 \
+  --stop-distance-m 0.35 \
+  --forward-speed 0.75 \
+  --scan-turn-speed 0.85 \
+  --arc-slow 0.72 \
+  --arc-fast 0.85 \
+  --search-turn-pulse-s 0.45 \
+  --search-camera-settle-s 0.20 \
+  --scan-max-s 30 \
+  --max-run-s 45 \
+  --save-search-frames
+```
+
+The log should show `source=yellow_component` and `label=yellow_blob` once the
+tape measure is selected. Keep a hand near the motor-battery switch. If the
+motors do not move even at these speeds, stop and debug `VM/GND/STBY` or motor
+wiring before changing perception thresholds.
+
 ## Why This Matters for Reconstruction
 
 This behavior is not the final reconstruction pipeline, but it proves the robot

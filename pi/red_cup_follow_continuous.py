@@ -252,6 +252,35 @@ def read_lidar_stream(
             state.update(record)
 
 
+def target_color_mask(arr: np.ndarray, args: argparse.Namespace) -> np.ndarray:
+    """Return a binary mask for the configured color target.
+
+    The first autonomy milestone used a hard-coded red filter for a red cup.
+    Keeping this as a simple RGB threshold is intentional: it is fast on the Pi,
+    does not need OpenCV, and is good enough for bright high-contrast targets
+    such as a red cup or yellow tape measure.
+    """
+    red = arr[:, :, 0]
+    green = arr[:, :, 1]
+    blue = arr[:, :, 2]
+    color_target = getattr(args, "color_target", "red")
+
+    if color_target == "yellow":
+        return (
+            (red >= getattr(args, "yellow_red_min", 90))
+            & (green >= getattr(args, "yellow_green_min", 80))
+            & (blue <= getattr(args, "yellow_blue_max", 150))
+            & (red > blue * getattr(args, "yellow_red_blue_ratio", 1.25))
+            & (green > blue * getattr(args, "yellow_green_blue_ratio", 1.15))
+        )
+
+    return (
+        (red > args.red_min)
+        & (red > green * args.red_green_ratio)
+        & (red > blue * args.red_blue_ratio)
+    )
+
+
 def red_components(mask: np.ndarray, *, min_pixels: int) -> list[RedComponent]:
     """Return 4-connected red components from a binary image mask.
 
@@ -624,6 +653,7 @@ def detect_red_target(args: argparse.Namespace) -> Target | None:
     image_path = args.output_dir / "red-cup-continuous.jpg"
     debug_path = args.output_dir / "red-cup-continuous-detection.jpg"
     debug_json_path = args.output_dir / "red-cup-continuous-detection.json"
+    color_target = getattr(args, "color_target", "red")
 
     subprocess.run(
         [
@@ -646,15 +676,7 @@ def detect_red_target(args: argparse.Namespace) -> Target | None:
 
     image = Image.open(image_path).convert("RGB")
     arr = np.array(image).astype(np.int16)
-    red = arr[:, :, 0]
-    green = arr[:, :, 1]
-    blue = arr[:, :, 2]
-
-    mask = (
-        (red > args.red_min)
-        & (red > green * args.red_green_ratio)
-        & (red > blue * args.red_blue_ratio)
-    )
+    mask = target_color_mask(arr, args)
     ys, xs = np.where(mask)
 
     draw = ImageDraw.Draw(image)
@@ -698,6 +720,7 @@ def detect_red_target(args: argparse.Namespace) -> Target | None:
                 json.dumps(
                     {
                         "mode": "object_detector",
+                        "color_target": color_target,
                         "selected": box_to_dict(
                             selected_box,
                             red_pixels=red_pixels,
@@ -705,6 +728,7 @@ def detect_red_target(args: argparse.Namespace) -> Target | None:
                             reason=None,
                         ),
                         "total_red_pixels": int(len(xs)),
+                        "total_target_pixels": int(len(xs)),
                         "detections": judged_boxes,
                     },
                     indent=2,
@@ -726,10 +750,12 @@ def detect_red_target(args: argparse.Namespace) -> Target | None:
             json.dumps(
                 {
                     "mode": "object_detector",
+                    "color_target": color_target,
                     "selected": None,
                     "total_red_pixels": int(len(xs)),
+                    "total_target_pixels": int(len(xs)),
                     "detections": judged_boxes,
-                    "reason": "no_detected_cup_box_with_enough_red",
+                    "reason": "no_detected_target_box_with_enough_color",
                 },
                 indent=2,
             ),
@@ -743,11 +769,13 @@ def detect_red_target(args: argparse.Namespace) -> Target | None:
         debug_json_path.write_text(
             json.dumps(
                 {
-                    "mode": "red_component",
+                    "mode": f"{color_target}_component",
+                    "color_target": color_target,
                     "selected": None,
                     "total_red_pixels": int(len(xs)),
+                    "total_target_pixels": int(len(xs)),
                     "components": [],
-                    "reason": "too_few_total_red_pixels",
+                    "reason": "too_few_total_target_pixels",
                 },
                 indent=2,
             ),
@@ -782,9 +810,11 @@ def detect_red_target(args: argparse.Namespace) -> Target | None:
         debug_json_path.write_text(
             json.dumps(
                 {
-                    "mode": "red_component",
+                    "mode": f"{color_target}_component",
+                    "color_target": color_target,
                     "selected": None,
                     "total_red_pixels": int(len(xs)),
+                    "total_target_pixels": int(len(xs)),
                     "components": [
                         component_to_dict(component, reason)
                         for component, reason in judged
@@ -810,9 +840,11 @@ def detect_red_target(args: argparse.Namespace) -> Target | None:
     debug_json_path.write_text(
         json.dumps(
             {
-                "mode": "red_component",
+                "mode": f"{color_target}_component",
+                "color_target": color_target,
                 "selected": component_to_dict(selected, None),
                 "total_red_pixels": int(len(xs)),
+                "total_target_pixels": int(len(xs)),
                 "components": [
                     component_to_dict(component, reason)
                     for component, reason in judged
@@ -828,8 +860,8 @@ def detect_red_target(args: argparse.Namespace) -> Target | None:
         cy=cy,
         error_x=float(error_x),
         red_pixels=selected.pixels,
-        source="red_component",
-        label="red_blob",
+        source=f"{color_target}_component",
+        label=f"{color_target}_blob",
         score=None,
     )
 
@@ -885,9 +917,15 @@ def main() -> int:
     parser.add_argument("--image-width", type=int, default=640)
     parser.add_argument("--image-height", type=int, default=360)
     parser.add_argument("--camera-timeout-ms", type=int, default=300)
+    parser.add_argument("--color-target", choices=["red", "yellow"], default="red")
     parser.add_argument("--red-min", type=int, default=100)
     parser.add_argument("--red-green-ratio", type=float, default=1.45)
     parser.add_argument("--red-blue-ratio", type=float, default=1.45)
+    parser.add_argument("--yellow-red-min", type=int, default=90)
+    parser.add_argument("--yellow-green-min", type=int, default=80)
+    parser.add_argument("--yellow-blue-max", type=int, default=150)
+    parser.add_argument("--yellow-red-blue-ratio", type=float, default=1.25)
+    parser.add_argument("--yellow-green-blue-ratio", type=float, default=1.15)
     parser.add_argument("--detector-model", type=Path, default=None)
     parser.add_argument("--detector-labels", type=Path, default=None)
     parser.add_argument("--detector-target-labels", default="cup")
