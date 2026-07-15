@@ -3118,3 +3118,11 @@ missed frame during approach before recovery. Both values are exposed as
 
 **Status:** Windows syntax verification passed with `py_compile`; Pi hardware
 validation pending.
+## 2026-07-15 — Project demo documentation
+
+**Artifact:** Added a README demo GIF from the complete 38-second yellow
+tape-measure search-and-approach video. The GIF plays at 2x speed (57 frames at
+330 ms/frame, approximately 19 seconds) and is embedded in `README.md`.
+
+**Verification:** README relative links were checked locally; GIF metadata and
+animation frame count were verified on the Windows workstation.
